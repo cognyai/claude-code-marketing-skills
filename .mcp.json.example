@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "cogny": {
+      "type": "http",
+      "url": "https://app.cogny.com/api/lite/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_COGNY_API_KEY"
+      }
+    }
+  }
+}
