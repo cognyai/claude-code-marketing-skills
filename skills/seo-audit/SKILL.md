@@ -100,10 +100,24 @@ Top 3 Actions:
 3. [Third highest]
 ```
 
-## Upgrade
+## Recording Findings
 
-Want deeper insights with real Search Console data (actual queries, rankings, click-through rates, indexing status)?
+If the Cogny MCP is connected (`mcp__cogny__create_finding` available), record each actionable finding:
 
-Connect Search Console via Cogny Agent ($9/mo): https://cogny.com/agent
+```json
+{
+  "title": "Missing meta descriptions on 12 pages",
+  "body": "Pages /pricing, /features, /blog/... lack meta descriptions. Average CTR for pages without descriptions is 30% lower.",
+  "action_type": "seo_optimization",
+  "expected_outcome": "Improve CTR by 15-30% on affected pages",
+  "priority": "high"
+}
+```
+
+## Deeper Analysis
+
+Want live Search Console data (actual queries, rankings, click-through rates, indexing status)?
+
+Connect Search Console via Cogny ($9/mo): https://cogny.com/pricing
 
 Then use `/seo-monitor` for live ranking data and automated monitoring.

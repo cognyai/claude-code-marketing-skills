@@ -5,7 +5,7 @@ version: "1.0.0"
 user-invocable: true
 argument-hint: "[status|run|loop|update]"
 allowed-tools:
-  # Built-in Cogny tools (task queue, heartbeat, tickets)
+  # Built-in Cogny tools (task queue, heartbeat, findings)
   - mcp__cogny__get_queue_status
   - mcp__cogny__get_next_task
   - mcp__cogny__complete_task
@@ -13,24 +13,23 @@ allowed-tools:
   - mcp__cogny__list_findings
   - mcp__cogny__get_finding
   - mcp__cogny__update_finding_status
+  - mcp__cogny__update_finding
   - mcp__cogny__create_finding
-  # Read-only platform tools (auto-approved)
-  - mcp__cogny__google_ads__tool_list_accessible_accounts
-  - mcp__cogny__google_ads__tool_execute_gaql
-  - mcp__cogny__google_ads__tool_get_gaql_doc
-  - mcp__cogny__google_ads__tool_get_reporting_view_doc
-  - mcp__cogny__google_ads__tool_list_audience_segments
-  - mcp__cogny__google_ads__tool_search_geo_targets
-  - mcp__cogny__google_ads__tool_generate_keyword_ideas
-  - mcp__cogny__meta_ads__tool_list_ad_accounts
-  - mcp__cogny__meta_ads__tool_get_campaigns
-  - mcp__cogny__meta_ads__tool_get_ad_sets
-  - mcp__cogny__meta_ads__tool_get_ads
-  - mcp__cogny__meta_ads__tool_get_insights
-  - mcp__cogny__meta_ads__tool_get_pixels
-  - mcp__cogny__meta_ads__tool_get_custom_audiences
-  - mcp__cogny__meta_ads__tool_get_facebook_pages
+  - mcp__cogny__delete_finding
+  - mcp__cogny__delete_findings
+  # Context tree (organizational knowledge)
+  - mcp__cogny__browse_context_tree
+  - mcp__cogny__read_context_node
+  - mcp__cogny__search_context
+  - mcp__cogny__write_context_node
+  - mcp__cogny__archive_context_node
+  - mcp__cogny__get_context_tree_overview
+  # Platform tools — Search Console + LinkedIn Ads (launch MCPs)
   - mcp__cogny__search_console__*
+  - mcp__cogny__linkedin_ads__*
+  # Platform tools — Google Ads + Meta Ads (coming soon)
+  - mcp__cogny__google_ads__*
+  - mcp__cogny__meta_ads__*
   - mcp__cogny__ga4__*
   # Write/mutation tools are NOT listed here — Claude Code will prompt for approval
   # Local tools
@@ -214,7 +213,11 @@ Approve all? Or select specific actions (e.g., "1 and 3 only")
 
 This ensures the user always knows exactly what will be changed and why before any mutation happens. Read-only queries (GAQL, get_campaigns, get_insights, etc.) can be run freely without approval.
 
-## Finding Quality Standards
+## Finding Management
+
+Findings are your primary output — they track actionable opportunities in the dashboard.
+
+### Creating findings
 
 Every finding MUST include:
 - **Specific numbers**: actual spend, CPA, ROAS, impressions, clicks
@@ -225,3 +228,19 @@ Every finding MUST include:
 
 Bad: "Campaign performance could be improved"
 Good: "Campaign 'Brand - US' CPA is $42.50 (68% above $25 target). Top 3 keywords consuming 40% of budget with 0 conversions. Pausing these keywords would save ~$1,200/month."
+
+### Compacting findings
+
+The workspace has a limit of 100 findings. When approaching the limit:
+
+1. Use `list_findings` with `status: ["done", "dismissed"]` to find resolved items
+2. Use `delete_findings` to bulk-remove old resolved findings
+3. Use `update_finding` to merge duplicate findings into one (update the body to combine details, then delete the duplicates)
+
+### Recording to context tree
+
+When you discover important, reusable insights about the business (not one-off findings), save them to the context tree:
+
+- `write_context_node` with path like `insights/seo/top-keywords` or `insights/linkedin/audience-profile`
+- This persists knowledge across sessions and helps future analyses
+- The context tree has a limit of 50 nodes — use `archive_context_node` to clean up stale entries
