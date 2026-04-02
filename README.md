@@ -1,0 +1,86 @@
+# Claude Code Marketing Skills
+
+AI marketing skills for Claude Code, Cursor, Windsurf, and other AI coding tools.
+Audit SEO, analyze ads, research competitors, qualify leads — all from your terminal.
+
+Built by [Cogny](https://cogny.com) — AI marketing infrastructure.
+
+## Quick Install
+
+```bash
+curl -sSL https://raw.githubusercontent.com/cognyai/claude-code-marketing-skills/main/install.sh | bash
+```
+
+Or manually copy the skills you want:
+
+```bash
+git clone https://github.com/cognyai/claude-code-marketing-skills.git
+cp -r claude-code-marketing-skills/skills/* .claude/skills/
+```
+
+## Free Skills (no account needed)
+
+These skills work immediately using web search and public data:
+
+| Skill | Command | What it does |
+|-------|---------|-------------|
+| SEO Audit | `/seo-audit` | Full technical + content SEO analysis (enhanced with live Search Console + Bing data when connected) |
+| Landing Page Review | `/landing-page-review` | CRO review with specific conversion recommendations |
+| Competitor Analysis | `/competitor-analysis` | Research competitor positioning, ads, and market gaps |
+| Ad Copy Writer | `/ad-copy-writer` | Generate ad copy variations for Google/Meta/LinkedIn |
+| Lead Qualification | `/lead-qualification` | Research and qualify business leads against your ICP |
+
+## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo per channel)
+
+These skills connect to your actual ad accounts via Cogny's MCP servers:
+
+| Skill | Command | MCP Server | What it does |
+|-------|---------|-----------|-------------|
+| LinkedIn Ads Audit | `/linkedin-ads-audit` | LinkedIn Ads | Campaign structure, targeting, creative performance, spend efficiency |
+| SEO Monitor | `/seo-monitor` | Search Console | Track rankings, queries, indexing, core web vitals |
+| Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
+
+More channel skills (Google Ads, Meta Ads) coming soon.
+
+### Setting up Premium Skills
+
+1. Sign up at [cogny.com](https://cogny.com)
+2. Connect your ad accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn)
+3. Add Cogny to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "cogny": {
+      "type": "http",
+      "url": "https://app.cogny.com/mcp"
+    }
+  }
+}
+```
+
+4. Claude Code will open a browser for OAuth login on first use.
+5. Run any premium skill — your AI now has direct access to your marketing data.
+
+## How It Works
+
+**Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
+
+**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, and LinkedIn Ads. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+
+```
+Your Claude Code ──MCP──> Cogny MCP Server ──OAuth──> Google Ads / Meta / Search Console / Bing / LinkedIn
+    (local)                (hosted)                      (your accounts)
+```
+
+## Contributing
+
+PRs welcome! See individual skill files for the format. Skills should include:
+- YAML frontmatter with metadata
+- Clear step-by-step instructions
+- Specific queries/actions (not vague recommendations)
+- Example output format
+
+## License
+
+MIT

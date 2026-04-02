@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cogny": {
+      "type": "http",
+      "url": "https://app.cogny.com/mcp"
+    }
+  }
+}
