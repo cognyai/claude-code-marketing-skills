@@ -74,6 +74,31 @@ More channel skills (Google Ads, Meta Ads) coming soon.
 Your Claude Code ──MCP──> Cogny MCP Server ──OAuth──> Google Ads / Meta / Search Console / Bing / LinkedIn
     (local)                (hosted)                      (your accounts)
 ```
+## Results
+
+### GrowthHackers.se — +271% organic clicks in 3 weeks
+
+Connected Search Console and Bing Webmaster Tools via Cogny MCP. 
+Ran `/seo-audit` + `/seo-monitor` after a site migration.
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Organic clicks | baseline | **+271%** |
+| Click-through rate | 0.29% | **0.66%** |
+| Search impressions | baseline | **+60%** |
+| AI citations (Bing Copilot) | baseline | **+154%** |
+| PageSpeed score | 78 | **97** |
+
+> "Cogny gave Claude Code eyes into our actual search data. 
+> The audit caught things we'd never have found manually."
+
+[Read the full case study →](https://cogny.com/case-studies/growthhackers-4x-organic-traffic)
+
+---
+
+*Got results? [Open an issue](https://github.com/cognyai/claude-code-marketing-skills/issues) 
+and we'll feature you here.*
+
 
 ## Contributing
 
