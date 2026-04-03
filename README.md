@@ -91,6 +91,7 @@ Ran `/seo-audit` + `/seo-monitor` after a site migration.
 
 > "Cogny gave Claude Code eyes into our actual search data. 
 > The audit caught things we'd never have found manually."
+> — Yi Li, CEO at GrowthHackers
 
 [Read the full case study →](https://cogny.com/case-studies/growthhackers-4x-organic-traffic)
 
