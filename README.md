@@ -3,6 +3,8 @@
 AI marketing skills for Claude Code, Cursor, Windsurf, and other AI coding tools.
 Audit SEO, analyze ads, research competitors, qualify leads — all from your terminal.
 
+**Free skills need no account. Premium skills connect your real data for $9/mo.**
+
 Built by [Cogny](https://cogny.com) — AI marketing infrastructure.
 
 ## Quick Install
