@@ -5,6 +5,10 @@ Audit SEO, analyze ads, research competitors, qualify leads — all from your te
 
 **Free skills need no account. Premium skills connect your real data for $9/mo.**
 
+<p align="center">
+  <img src="demo.gif" alt="Claude Code Marketing Skills demo" width="800">
+</p>
+
 Built by [Cogny](https://cogny.com) — AI marketing infrastructure.
 
 ## Quick Install
