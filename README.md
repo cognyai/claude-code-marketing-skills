@@ -36,7 +36,7 @@ These skills work immediately using web search and public data:
 | Ad Copy Writer | `/ad-copy-writer` | Generate ad copy variations for Google/Meta/LinkedIn |
 | Lead Qualification | `/lead-qualification` | Research and qualify business leads against your ICP |
 
-## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo per channel)
+## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
 These skills connect to your actual ad accounts via Cogny's MCP servers:
 
