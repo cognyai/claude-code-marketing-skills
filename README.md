@@ -35,6 +35,7 @@ These skills work immediately using web search and public data:
 | Competitor Analysis | `/competitor-analysis` | Research competitor positioning, ads, and market gaps |
 | Ad Copy Writer | `/ad-copy-writer` | Generate ad copy variations for Google/Meta/LinkedIn |
 | Lead Qualification | `/lead-qualification` | Research and qualify business leads against your ICP |
+| GA4 BigQuery Schema | `/ga4-bigquery-schema` | Complete GA4 BigQuery export schema reference with query patterns |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
