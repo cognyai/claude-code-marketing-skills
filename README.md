@@ -36,6 +36,15 @@ These skills work immediately using web search and public data:
 | Ad Copy Writer | `/ad-copy-writer` | Generate ad copy variations for Google/Meta/LinkedIn |
 | Lead Qualification | `/lead-qualification` | Research and qualify business leads against your ICP |
 | GA4 BigQuery Schema | `/ga4-bigquery-schema` | Complete GA4 BigQuery export schema reference with query patterns |
+| GA4 Event Implementation | `/ga4-events` | GA4 event model reference — recommended events, custom dimensions, validation |
+| GTM Event Tracking | `/gtm-setup` | GTM dataLayer, triggers, variables, tag configuration, and debug mode |
+| GAQL Reference | `/gaql-reference` | Google Ads Query Language syntax, fields, and common report queries |
+| Conversion Tracking Debugger | `/conversion-debug` | Cross-platform conversion tracking troubleshooting (GTM + GA4 + Ads + Meta) |
+| Meta Conversions API | `/meta-capi` | Meta CAPI setup — server-side events, dedup, event match quality |
+| UTM Strategy & Builder | `/utm-builder` | UTM naming conventions, channel grouping rules, validation queries |
+| Structured Data | `/structured-data` | Schema.org JSON-LD templates for rich results — all major types |
+| Core Web Vitals | `/cwv-audit` | LCP, INP, CLS diagnosis and fixes with CrUX BigQuery queries |
+| Google Ads Scripts | `/google-ads-scripts` | Google Ads Scripts patterns — automation, Sheets integration, MCC scripts |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
