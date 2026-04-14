@@ -54,14 +54,15 @@ These skills connect to your actual ad accounts via Cogny's MCP servers:
 |-------|---------|-----------|-------------|
 | LinkedIn Ads Audit | `/linkedin-ads-audit` | LinkedIn Ads | Campaign structure, targeting, creative performance, spend efficiency |
 | SEO Monitor | `/seo-monitor` | Search Console | Track rankings, queries, indexing, core web vitals |
+| CRM ICP Analysis | `/crm-icp-analysis` | HubSpot | Build data-driven ICP from closed-won deals, contacts, and companies |
+| Sales Momentum Drivers | `/crm-sales-momentum` | HubSpot | Pipeline velocity, stage conversions, stuck deals, win/loss patterns |
+| LinkedIn Micro Campaigns | `/linkedin-micro-campaigns` | HubSpot + LinkedIn Ads | Create precision-targeted LinkedIn campaigns from ICP data |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
-
-More channel skills (Google Ads, Meta Ads) coming soon.
 
 ### Setting up Premium Skills
 
 1. Sign up at [cogny.com](https://cogny.com)
-2. Connect your ad accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn)
+2. Connect your accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn, HubSpot)
 3. Add Cogny to your `.mcp.json`:
 
 ```json
@@ -82,10 +83,10 @@ More channel skills (Google Ads, Meta Ads) coming soon.
 
 **Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
 
-**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, and LinkedIn Ads. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, and HubSpot. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
 
 ```
-Your Claude Code ──MCP──> Cogny MCP Server ──OAuth──> Google Ads / Meta / Search Console / Bing / LinkedIn
+Your Claude Code ──MCP──> Cogny MCP Server ──OAuth──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
     (local)                (hosted)                      (your accounts)
 ```
 ## Results
