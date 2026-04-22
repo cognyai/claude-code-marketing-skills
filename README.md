@@ -45,6 +45,7 @@ These skills work immediately using web search and public data:
 | Structured Data | `/structured-data` | Schema.org JSON-LD templates for rich results — all major types |
 | Core Web Vitals | `/cwv-audit` | LCP, INP, CLS diagnosis and fixes with CrUX BigQuery queries |
 | Google Ads Scripts | `/google-ads-scripts` | Google Ads Scripts patterns — automation, Sheets integration, MCC scripts |
+| Website Migration Audit | `/website-migration-audit` | Compare production vs staging — SEO parity, content integrity, launch readiness (enhanced with Search Console data when connected) |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
