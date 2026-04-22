@@ -8,11 +8,17 @@ platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
 user-invocable: true
 argument-hint: "[campaign ID | paste HTML]"
 allowed-tools:
+  # Cogny Cloud (aggregated) namespace
   - mcp__cogny__klaviyo__*
   - mcp__cogny__mailchimp__*
   - mcp__cogny__rule__*
   - mcp__cogny__get_a_newsletter__*
   - mcp__cogny__create_finding
+  # Cogny Solo / Lite (per-ESP direct) namespace
+  - mcp__klaviyo__*
+  - mcp__mailchimp__*
+  - mcp__rule__*
+  - mcp__get_a_newsletter__*
   - WebFetch
   - Bash
   - Read
@@ -27,20 +33,30 @@ Catch the embarrassing stuff before it ships to your list. Runs a full pre-fligh
 
 ## Usage
 
-`/pre-send-qa <campaign-id>` — QA a specific campaign in your ESP
+`/pre-send-qa <campaign-or-draft-id>` — QA a specific campaign (or draft, for Get a Newsletter) in your ESP
 `/pre-send-qa` — then paste the email HTML/MJML/text when prompted
 
 ## Steps
 
 ### 1. Load the email
 
-**Mode A — Campaign ID (MCP):**
-- Detect connected ESP
-- Fetch the campaign by ID: subject, preheader, from name, from email, reply-to, HTML body, text body, target segment/list
-- Also fetch the associated list's size
+**Mode A — Campaign ID (MCP).** Detect which ESP is connected (check both namespaces: `mcp__cogny__<svc>__*` and `mcp__<svc>__*`) and use the right tool:
+
+| ESP | Fetch tool | What the ID refers to |
+|-----|------------|----------------------|
+| Klaviyo | `get_campaign` | Campaign object |
+| Mailchimp | `tool_get_campaign` | Campaign object |
+| Rule | `tool_get_campaign` | Campaign object |
+| Get a Newsletter — pre-send | `tool_get_draft` | A draft that hasn't been sent yet |
+| Get a Newsletter — post-send forensics | `tool_get_sent` + `tool_get_report` | A sent item |
+
+For every ESP extract: subject, preheader, from name, from email, reply-to, HTML body, text body, target segment/list, scheduled send time. Also fetch the associated list/audience size so Section 2.8 has recipient count.
+
+**Get a Newsletter has no single "campaign" object.** If the user passes an ID, try `tool_get_draft` first (pre-send QA is the common use), fall back to `tool_get_sent` if that 404s. If they want to QA a *scheduled* send, use `tool_list_scheduled` to find it.
 
 **Mode B — Paste:**
 - Ask for subject line, preheader, from name/email, and body HTML. Accept multi-line paste.
+- Section 2.8 (send context) is skipped in paste mode — no recipient count, no segment, no schedule.
 
 ### 2. Run the checklist
 

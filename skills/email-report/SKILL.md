@@ -8,6 +8,7 @@ platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
 user-invocable: true
 argument-hint: "[weekly|monthly] [slack|ceo|deck|all]"
 allowed-tools:
+  # Cogny Cloud (aggregated) namespace
   - mcp__cogny__klaviyo__*
   - mcp__cogny__mailchimp__*
   - mcp__cogny__rule__*
@@ -15,6 +16,11 @@ allowed-tools:
   - mcp__cogny__create_finding
   - mcp__cogny__write_context_node
   - mcp__cogny__read_context_node
+  # Cogny Solo / Lite (per-ESP direct) namespace
+  - mcp__klaviyo__*
+  - mcp__mailchimp__*
+  - mcp__rule__*
+  - mcp__get_a_newsletter__*
   - Bash
   - Read
   - Write
@@ -50,13 +56,28 @@ State the exact date ranges up front.
 
 ### 2. Pull the data
 
+**Per-ESP tool adapter.** The right tool depends on which ESP is connected:
+
+| Data | Klaviyo | Mailchimp | Rule | Get a Newsletter |
+|------|---------|-----------|------|------------------|
+| Campaign list | `list_campaigns` | `tool_list_campaigns` | `tool_list_campaigns` | `tool_list_sent` |
+| Campaign metrics | `get_campaign` + `list_events` (metric-filtered) | `tool_get_report` | `tool_get_campaign_statistics` | `tool_get_report` |
+| Automation / flow list | `list_flows` | `tool_list_automations` | `tool_list_journeys` | **not available** |
+| Flow metrics | `get_flow` | `tool_get_automation` | `tool_list_journeys` (limited) | **not available** |
+| Subscriber list size | `list_profiles` (count) | `tool_get_audience` | `tool_list_subscribers` (count) | `tool_list_contacts` (count) |
+| Revenue per send | ✓ via `list_events` with `metric="Placed Order"` | **not available** | **not available** | **not available** |
+
 For the current window AND the comparison window, pull:
 
 **Campaign broadcasts:**
-- Each campaign's subject, send date, recipient count, opens, unique opens, clicks, unique clicks, unsubs, bounces, revenue attributed (if ESP has ecom)
+- Each campaign's subject, send date, recipient count, opens, unique opens, clicks, unique clicks, unsubs, bounces.
+- **Revenue attributed — Klaviyo only.** For Klaviyo, fetch "Placed Order" events scoped to the send window and attribute by campaign. For Mailchimp/Rule/Get a Newsletter, omit the revenue line entirely from the report and call it out.
 
-**Flows / automations (if supported by ESP):**
-- Flow name, recipients entered, emails sent, opens, clicks, revenue, conversion rate
+**Flows / automations — varies by ESP:**
+- Klaviyo: flow name, triggered volume, revenue per flow (via events).
+- Mailchimp: automation name, sends, opens, clicks (no revenue).
+- Rule: journey name + limited metrics.
+- Get a Newsletter: **no flow object exists.** Skip this section; use a "recurring sends" proxy if the user has a newsletter cadence.
 
 **List-level metrics:**
 - List size at period start vs end
@@ -209,4 +230,4 @@ For anything serious (unsub rate spike, deliverability drop, revenue collapse), 
 
 - **Open rate is noisy** since Apple MPP. Always report CTR and CTOR alongside. If open rate moves >5pp but CTOR doesn't, it's probably MPP population change, not real behavior.
 - For first-ever run, there's no prior period to compare to — call this out explicitly and use absolute numbers only.
-- Don't invent revenue numbers. If the ESP doesn't expose revenue (Rule, Get a Newsletter without ecom), say so and report on engagement only.
+- **Don't invent revenue numbers.** Klaviyo is the only ESP in the cogny-mcp-proxy that exposes revenue data today (via "Placed Order" events with a `value` field). For Mailchimp, Rule, and Get a Newsletter, say "revenue not exposed by this ESP's MCP" and report on engagement only — or let the user paste in list-revenue so you can compute CPM/revenue-per-send on their numbers.

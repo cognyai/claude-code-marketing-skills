@@ -8,6 +8,7 @@ platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
 user-invocable: true
 argument-hint: ""
 allowed-tools:
+  # Cogny Cloud (aggregated) namespace
   - mcp__cogny__klaviyo__*
   - mcp__cogny__mailchimp__*
   - mcp__cogny__rule__*
@@ -15,6 +16,11 @@ allowed-tools:
   - mcp__cogny__create_finding
   - mcp__cogny__write_context_node
   - mcp__cogny__read_context_node
+  # Cogny Solo / Lite (per-ESP direct) namespace
+  - mcp__klaviyo__*
+  - mcp__mailchimp__*
+  - mcp__rule__*
+  - mcp__get_a_newsletter__*
   - WebFetch
   - Bash
   - Read
@@ -35,7 +41,18 @@ This is the skill to run once per quarter, or whenever you inherit an email prog
 
 ## Prerequisites Check
 
-Detect connected ESP. If the user has multiple connected, run against each and produce separate reports. If the ESP has no ecom integration (Rule, Get a Newsletter without ecom), the audit runs engagement-only and revenue numbers are flagged as estimated.
+Detect connected ESP (check both `mcp__cogny__<svc>__*` and `mcp__<svc>__*` namespaces). If the user has multiple connected, run against each and produce separate reports.
+
+**Revenue data availability (cogny-mcp-proxy as of this writing):**
+
+| ESP | Has flows/automations? | Has purchase/revenue data? |
+|-----|------------------------|----------------------------|
+| Klaviyo | ✓ (`list_flows`) | ✓ (via `list_events` with metric="Placed Order", `value` field) |
+| Mailchimp | ✓ (`tool_list_automations`) | ✗ — engagement only |
+| Rule | ✓ (`tool_list_journeys`) | ✗ — engagement only |
+| Get a Newsletter | ✗ — no flow concept exists | ✗ — engagement only |
+
+For non-Klaviyo ESPs, revenue estimates must be either (a) supplied by the user (paste historical email revenue), or (b) flagged as "engagement uplift only" with no dollar figures.
 
 ## Steps
 
@@ -44,19 +61,29 @@ Detect connected ESP. If the user has multiple connected, run against each and p
 Pull once and reference throughout:
 - Total active subscribers
 - Average open rate + CTR (last 90 days)
-- Total email revenue (last 90 days, if ecom) — this is the denominator for every % impact claim
-- Average AOV (if ecom)
+- **Klaviyo only:** Total email revenue (last 90 days) via `list_events` with `metric="Placed Order"`, summed `value` field, filtered to events attributed to email campaigns. This is the denominator for every % impact claim.
+- **Klaviyo only:** Average AOV (total revenue / order count in period)
 - List growth rate (last 90 days)
-- Active flows / automations and their performance
+- Active flows / automations / journeys and their performance (Klaviyo / Mailchimp / Rule only — Get a Newsletter has no equivalent)
 - Last 90 days of campaign sends
 
-If no ecom data, use **estimated value per subscriber per month** = (list revenue from user input OR industry benchmark $0.10–$2.00 depending on vertical).
+**If connected ESP is Mailchimp, Rule, or Get a Newsletter:** prompt the user for their approximate 90-day email revenue (or let them skip it). If they skip, use **estimated value per subscriber per month** = (industry benchmark $0.10–$2.00 depending on vertical) as a rough denominator, and clearly label every revenue estimate as "based on industry benchmark, not your actual data."
 
 ### 2. Run the nine checks
 
 For each check, output: **finding title + estimated $ lift + evidence + recommended fix**.
 
-#### Check 1 — Missing core flows
+#### Check 1 — Missing core flows / automations / journeys
+
+Map "flow" to the right concept per ESP:
+
+| ESP | Object | Tool |
+|-----|--------|------|
+| Klaviyo | Flow | `list_flows` + `get_flow` |
+| Mailchimp | Automation / Customer Journey | `tool_list_automations` + `tool_get_automation` |
+| Rule | Journey | `tool_list_journeys` |
+| Get a Newsletter | **No equivalent** — skip this check and note the limitation |
+
 The highest-ROI flows and their typical revenue contribution in healthy ecom programs (Klaviyo benchmarks):
 
 | Flow | Typical % of email revenue | Trigger |
@@ -70,14 +97,19 @@ The highest-ROI flows and their typical revenue contribution in healthy ecom pro
 | Birthday / anniversary | 0.5–2% | Date token match |
 | VIP / thank-you | 1–3% | Top-tier LTV crossed |
 
-For each missing or disabled flow, estimate lift: `total_email_revenue × benchmark_%` as the annualized $ left on the table.
+For each missing or disabled flow, estimate lift: `total_email_revenue × benchmark_%` as the annualized $ left on the table (Klaviyo). For Mailchimp/Rule/Get a Newsletter without revenue data, frame the impact as engagement uplift (e.g., "typically adds X–Y% to total email engagement volume") and skip the dollar estimate unless the user provided a revenue baseline.
 
-#### Check 2 — Dormant high-value subscribers
+#### Check 2 — Dormant high-value subscribers (Klaviyo only)
+
 Segment current active list by:
 - **Ever purchased** × **engaged in last 60 days**
 
+Pull purchase history via `list_events` with `metric="Placed Order"`. Group by `profile_id`, take max `value` sum per profile as LTV. Cross-reference against `list_profiles` last-engaged date.
+
 Count subscribers who have purchased at least once but haven't opened/clicked in 60+ days. Estimate:
 `count × avg_AOV × 3% reactivation rate × 2 orders/year = annualized recoverable revenue`
+
+**For Mailchimp / Rule / Get a Newsletter:** purchase data is not exposed. Degrade this check to "dormant deeply-engaged subscribers" — pull subscribers with high historical open+click counts who haven't engaged in 60+ days, present as engagement-uplift opportunity without a dollar figure.
 
 #### Check 3 — Under-segmented broadcasts
 Scan last 90 days of campaign sends. For each campaign, check if it was sent to:
@@ -109,13 +141,18 @@ Count subscribers who have:
 
 Sending to these hurts deliverability. Quantify the deliverability drag: "Removing these X subscribers typically lifts overall open rate by 1-3pp on remaining list, which compounds to ~Y% revenue lift across all future sends."
 
-#### Check 7 — Post-purchase upsell / cross-sell gap (ecom only)
+#### Check 7 — Post-purchase upsell / cross-sell gap (Klaviyo only)
+
+Purchase-data-dependent — only runs for Klaviyo. Uses `list_events` with `metric="Placed Order"` to compute repurchase cadence.
+
 For brands with purchase data:
 - Does a post-purchase flow exist? (Check 1)
 - Does it include category-appropriate upsell or accessory recommendations?
 - What's the 30-day repurchase rate? If <15%, post-purchase is underbuilt.
 
 Estimate: `customers_per_month × current_repurchase_rate_gap × avg_AOV`.
+
+**For Mailchimp / Rule / Get a Newsletter:** skip this check with a one-line note ("skipped — no purchase data exposed by this ESP's MCP; rerun with Klaviyo or paste purchase data manually").
 
 #### Check 8 — List capture inference
 Compare list growth rate to benchmarks:
@@ -223,4 +260,8 @@ Or: ask me to draft a specific flow by name.
 
 - **Benchmarks are rough.** Real uplift depends on list quality, brand, vertical, and offer. Always frame estimates as "reasonable industry range" not "guaranteed."
 - Don't double-count. If "missing abandoned cart" and "post-purchase gap" both hit, check that the benchmark assumptions aren't overlapping.
-- If the connected ESP is Get a Newsletter or Rule without ecom: run engagement-focused checks only (1, 3, 4, 5, 6, 9) and skip revenue checks (2, 7) with a note.
+- **ESP-specific check coverage (cogny-mcp-proxy):**
+  - Klaviyo: all 9 checks run with dollar estimates.
+  - Mailchimp: Checks 1, 3, 4, 5, 6, 8, 9 run normally. Checks 2 and 7 degrade to "engagement-only" framing.
+  - Rule: same as Mailchimp.
+  - Get a Newsletter: Check 1 is skipped (no flow concept). Checks 2 and 7 are skipped (no purchase data). The remaining checks (3, 4, 5, 6, 8, 9) run on engagement data only.

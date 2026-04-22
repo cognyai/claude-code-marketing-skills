@@ -8,6 +8,7 @@ platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
 user-invocable: true
 argument-hint: "[campaign topic]"
 allowed-tools:
+  # Cogny Cloud (aggregated) namespace
   - mcp__cogny__klaviyo__*
   - mcp__cogny__mailchimp__*
   - mcp__cogny__rule__*
@@ -15,6 +16,11 @@ allowed-tools:
   - mcp__cogny__create_finding
   - mcp__cogny__write_context_node
   - mcp__cogny__read_context_node
+  # Cogny Solo / Lite (per-ESP direct) namespace
+  - mcp__klaviyo__*
+  - mcp__mailchimp__*
+  - mcp__rule__*
+  - mcp__get_a_newsletter__*
   - Bash
   - Read
   - Write
@@ -33,12 +39,12 @@ Stop A/B testing blind. This skill reads **your actual last 100+ sends**, finds 
 
 ## Prerequisites Check
 
-Detect which ESP is connected by checking available tools:
+Detect which ESP is connected. Check **both** namespaces (Cloud-aggregated via `mcp__cogny__<svc>__*` and Solo/Lite per-ESP via `mcp__<svc>__*`):
 
-- `mcp__cogny__klaviyo__*` present → Klaviyo
-- `mcp__cogny__mailchimp__*` present → Mailchimp
-- `mcp__cogny__rule__*` present → Rule
-- `mcp__cogny__get_a_newsletter__*` present → Get a Newsletter
+- Klaviyo → `mcp__cogny__klaviyo__*` or `mcp__klaviyo__*`
+- Mailchimp → `mcp__cogny__mailchimp__*` or `mcp__mailchimp__*`
+- Rule → `mcp__cogny__rule__*` or `mcp__rule__*`
+- Get a Newsletter → `mcp__cogny__get_a_newsletter__*` or `mcp__get_a_newsletter__*`
 
 If none are connected:
 
@@ -48,6 +54,17 @@ Connect Klaviyo, Mailchimp, Rule, or Get a Newsletter at https://cogny.com
 ```
 
 If multiple are connected, prompt the user which one to analyze (or analyze all, labeled).
+
+## ESP tool adapter
+
+Each ESP exposes subject-line history differently. Use the right tool per connected service:
+
+| ESP | Send history tool | Notes |
+|-----|-------------------|-------|
+| Klaviyo | `list_campaigns` (channel=email) then `get_campaign` | Tools are bare-named. Use `list_events` for deeper open/click metrics. |
+| Mailchimp | `tool_list_reports` then `tool_get_report` | Reports are the source of truth for opens/clicks per send. |
+| Rule | `tool_list_campaigns` then `tool_get_campaign_statistics` | Statistics tool returns opens/clicks/bounces. |
+| Get a Newsletter | `tool_list_sent` then `tool_get_sent` and `tool_get_report` | "Campaigns" don't exist as an object — iterate `list_sent` for subject+date, `get_report` per send for metrics. |
 
 ## Steps
 

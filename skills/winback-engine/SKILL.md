@@ -8,12 +8,18 @@ platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
 user-invocable: true
 argument-hint: "[aggressive|standard|conservative]"
 allowed-tools:
+  # Cogny Cloud (aggregated) namespace
   - mcp__cogny__klaviyo__*
   - mcp__cogny__mailchimp__*
   - mcp__cogny__rule__*
   - mcp__cogny__get_a_newsletter__*
   - mcp__cogny__create_finding
   - mcp__cogny__write_context_node
+  # Cogny Solo / Lite (per-ESP direct) namespace
+  - mcp__klaviyo__*
+  - mcp__mailchimp__*
+  - mcp__rule__*
+  - mcp__get_a_newsletter__*
   - Bash
   - Read
   - Write
@@ -48,22 +54,33 @@ Detect connected ESP (same pattern as subject-line-lab). If none, prompt user to
 | conservative | 90+ days | 270+ days | 540+ days |
 
 ### 2. Pull subscriber data
+
 From the connected ESP, pull every active subscriber with:
 - Subscribe date
 - Last open date + last click date (take max as last_engaged)
 - Total historical opens / clicks
-- Purchase history if ecom integration exists (Klaviyo, Mailchimp eComm):
-  - Total spend (lifetime value)
-  - Order count
-  - Average order value (AOV)
-  - Last order date
 - Signup source / list
 - Tags / segments
 - Email domain (gmail, yahoo, hotmail, corporate)
 
+**Purchase / LTV data — Klaviyo only.** The cogny-mcp-proxy currently exposes purchase data for Klaviyo (via `list_events` filtered to the "Placed Order" metric, summing the `value` field per profile). Mailchimp, Rule, and Get a Newsletter in this proxy are **engagement-only** — they do not expose:
+- Total spend / LTV
+- Order count
+- AOV
+- Last order date
+
+**Per-ESP tool adapter:**
+
+| ESP | Subscriber list | Purchase history | Suppression write |
+|-----|-----------------|------------------|-------------------|
+| Klaviyo | `list_profiles` (+ `get_profile` for detail) | `list_events` with `metric="Placed Order"` — use `value` field per profile for LTV | `unsubscribe_profiles` |
+| Mailchimp | `tool_list_members` (filter `status=subscribed`) | **Not available** | `tool_update_member` (status=unsubscribed) |
+| Rule | `tool_list_subscribers` | **Not available** | `tool_update_subscriber` / `tool_list_suppressions` |
+| Get a Newsletter | `tool_list_contacts` | **Not available** | `tool_delete_contact` or `tool_update_contact` |
+
 ### 3. Segment into tiers
 
-Cross-cut by **engagement recency** × **historical value**:
+**If Klaviyo (has purchase data):** cross-cut by **engagement recency** × **historical value**:
 
 | Tier | Criteria | Tone | Offer |
 |------|----------|------|-------|
@@ -71,6 +88,17 @@ Cross-cut by **engagement recency** × **historical value**:
 | **B — Medium value dormant** | Dormant + some past engagement or 1 purchase | Warm, value-forward | Moderate (10–15% off, bundle, content) |
 | **C — Low engagement dormant** | Dormant + never purchased + low engagement history | Direct, honest | Last-chance offer or content-only |
 | **D — Suppression candidates** | Deep dormant + no purchase + no recent engagement | Final email only | "We're removing you unless..." |
+
+**If Mailchimp / Rule / Get a Newsletter (engagement-only):** tier by **engagement depth** instead. No purchase data is available from the proxy for these ESPs — LTV-based tiering falls back to:
+
+| Tier | Criteria | Tone | Offer |
+|------|----------|------|-------|
+| **A — Deep engaged dormant** | Dormant now, but historically high open+click rate (top quartile of clicks) | Personal, "we miss you" | Strong offer or exclusive content |
+| **B — Casual dormant** | Dormant, moderate historical engagement | Warm, value-forward | Modest offer |
+| **C — Low engagement dormant** | Dormant, few lifetime opens/clicks | Direct, honest | Content-only or re-opt-in ask |
+| **D — Suppression candidates** | Deep dormant, minimal lifetime engagement | Final email only | Goodbye |
+
+Revenue estimates in the output should be omitted for engagement-only ESPs, or marked `estimated_impact_usd: null` on findings with a note that the user can pair with their own LTV data to size the opportunity.
 
 Output the tier sizes before drafting:
 
@@ -179,4 +207,5 @@ And one for suppression:
 
 - **Never suppress before a winback attempt.** Give Tier D subscribers one last chance to re-engage.
 - Apple MPP means "last open" is noisy for iPhone users. Weight **clicks** and **purchases** higher than opens when assigning tiers.
-- If purchase data isn't available (Get a Newsletter, Rule without ecom integration), tier A/B/C purely on engagement recency + depth.
+- **Only Klaviyo exposes purchase/LTV data** through the cogny-mcp-proxy today. Mailchimp, Rule, and Get a Newsletter fall back to the engagement-only tiering scheme above.
+- **Get a Newsletter has no flow/automation object.** "Install as a flow" isn't available — winback is delivered as scheduled individual sends via `tool_send_draft` with `time_to_send`. For Klaviyo, flows install via the Klaviyo UI (the MCP exposes `list_flows`/`get_flow` for reads only, not create). For Mailchimp/Rule, automations/journeys are read-only too — so "install" means drafting campaigns and scheduling them, not creating a native automation.
