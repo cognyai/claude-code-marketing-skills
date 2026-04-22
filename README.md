@@ -45,10 +45,12 @@ These skills work immediately using web search and public data:
 | Structured Data | `/structured-data` | Schema.org JSON-LD templates for rich results — all major types |
 | Core Web Vitals | `/cwv-audit` | LCP, INP, CLS diagnosis and fixes with CrUX BigQuery queries |
 | Google Ads Scripts | `/google-ads-scripts` | Google Ads Scripts patterns — automation, Sheets integration, MCC scripts |
+| Welcome Series Writer | `/welcome-series` | Generate a full 5-email welcome series from a brand URL — ready to paste into any ESP |
+| Deliverability Check | `/deliverability-check` | Audit SPF / DKIM / DMARC / BIMI on your sending domain, with a prioritized fix order |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
-These skills connect to your actual ad accounts via Cogny's MCP servers:
+These skills connect to your actual ad accounts and email platforms via Cogny's MCP servers:
 
 | Skill | Command | MCP Server | What it does |
 |-------|---------|-----------|-------------|
@@ -57,12 +59,17 @@ These skills connect to your actual ad accounts via Cogny's MCP servers:
 | CRM ICP Analysis | `/crm-icp-analysis` | HubSpot | Build data-driven ICP from closed-won deals, contacts, and companies |
 | Sales Momentum Drivers | `/crm-sales-momentum` | HubSpot | Pipeline velocity, stage conversions, stuck deals, win/loss patterns |
 | LinkedIn Micro Campaigns | `/linkedin-micro-campaigns` | HubSpot + LinkedIn Ads | Create precision-targeted LinkedIn campaigns from ICP data |
+| Subject Line Lab | `/subject-line-lab` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Mine your last 100+ sends, find the subject-line patterns that actually lift opens on *your* list, and generate 20 tuned candidates |
+| Winback Engine | `/winback-engine` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find dormant subscribers, tier by historical value, draft personalized winback series per tier, flag suppression candidates |
+| Pre-Send QA | `/pre-send-qa` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Pre-flight QA: merge tag fallbacks, broken links, spam triggers, CAN-SPAM compliance, mobile rendering |
+| Email Report | `/email-report` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Auto-write the weekly/monthly email performance report in 3 formats — Slack, CEO email, board deck section |
+| Revenue Audit | `/revenue-audit` | Klaviyo / Mailchimp / Rule / Get a Newsletter | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
 
 ### Setting up Premium Skills
 
 1. Sign up at [cogny.com](https://cogny.com)
-2. Connect your accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn, HubSpot)
+2. Connect your accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn, HubSpot) and email platforms (Klaviyo, Mailchimp, Rule, Get a Newsletter)
 3. Add Cogny to your `.mcp.json`:
 
 ```json
@@ -83,11 +90,12 @@ These skills connect to your actual ad accounts via Cogny's MCP servers:
 
 **Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
 
-**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, and HubSpot. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, and Get a Newsletter. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
 
 ```
-Your Claude Code ──MCP──> Cogny MCP Server ──OAuth──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
-    (local)                (hosted)                      (your accounts)
+Your Claude Code ──MCP──> Cogny MCP Server ──OAuth/Token──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
+    (local)                (hosted)                           Klaviyo / Mailchimp / Rule / Get a Newsletter
+                                                              (your accounts)
 ```
 ## Results
 
