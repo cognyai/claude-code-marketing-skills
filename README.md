@@ -31,6 +31,7 @@ These skills work immediately using web search and public data:
 | Skill | Command | What it does |
 |-------|---------|-------------|
 | SEO Audit | `/seo-audit` | Full technical + content SEO analysis (enhanced with live Search Console + Bing data when connected) |
+| Non-Commodity Content | `/non-commodity-content` | Interviews you for real client stories, refusals, and numbers — then drafts the non-commodity SEO brief Google actually ranks |
 | Landing Page Review | `/landing-page-review` | CRO review with specific conversion recommendations |
 | Competitor Analysis | `/competitor-analysis` | Research competitor positioning, ads, and market gaps |
 | Ad Copy Writer | `/ad-copy-writer` | Generate ad copy variations for Google/Meta/LinkedIn |
