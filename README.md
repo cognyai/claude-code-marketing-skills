@@ -46,6 +46,7 @@ These skills work immediately using web search and public data:
 | Structured Data | `/structured-data` | Schema.org JSON-LD templates for rich results — all major types |
 | Core Web Vitals | `/cwv-audit` | LCP, INP, CLS diagnosis and fixes with CrUX BigQuery queries |
 | Google Ads Scripts | `/google-ads-scripts` | Google Ads Scripts patterns — automation, Sheets integration, MCC scripts |
+| Website Migration Audit | `/website-migration-audit` | Compare production vs staging — SEO parity, content integrity, launch readiness (enhanced with Search Console data when connected) |
 | Welcome Series Writer | `/welcome-series` | Generate a full 5-email welcome series from a brand URL — ready to paste into any ESP |
 | Deliverability Check | `/deliverability-check` | Audit SPF / DKIM / DMARC / BIMI on your sending domain, with a prioritized fix order |
 
