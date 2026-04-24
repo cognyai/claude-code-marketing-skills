@@ -65,6 +65,7 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 | Pre-Send QA | `/pre-send-qa` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Pre-flight QA: merge tag fallbacks, broken links, spam triggers, CAN-SPAM compliance, mobile rendering |
 | Email Report | `/email-report` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Auto-write the weekly/monthly email performance report in 3 formats — Slack, CEO email, board deck section |
 | Revenue Audit | `/revenue-audit` | Klaviyo / Mailchimp / Rule / Get a Newsletter | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
+| Drop-off Rescue | `/drop-off-rescue` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft re-engagement emails, schedule sends — reruns weekly without double-sending |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
 
 ### Setting up Premium Skills
