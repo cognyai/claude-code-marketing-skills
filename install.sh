@@ -55,9 +55,14 @@ if echo "$INSTALLED" | grep -q "claude-code"; then
     skill_name=$(basename "$skill_dir")
     mkdir -p "$TARGET/$skill_name"
     cp "$skill_dir"SKILL.md "$TARGET/$skill_name/SKILL.md" 2>/dev/null || true
-    # Copy any reference files
-    for ref in "$skill_dir"references/ "$skill_dir"evals/; do
-      [ -d "$ref" ] && cp -r "$ref" "$TARGET/$skill_name/" 2>/dev/null || true
+    # Copy any reference files. Use `cp -R src/. dst/` so the directory is
+    # preserved (BSD cp on macOS flattens trailing-slash sources otherwise).
+    for ref in references evals; do
+      src="$skill_dir$ref"
+      if [ -d "$src" ]; then
+        mkdir -p "$TARGET/$skill_name/$ref"
+        cp -R "$src/." "$TARGET/$skill_name/$ref/"
+      fi
     done
     COUNT=$((COUNT + 1))
   done

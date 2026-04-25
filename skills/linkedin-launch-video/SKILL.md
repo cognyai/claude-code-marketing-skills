@@ -13,6 +13,11 @@ allowed-tools:
   - Read
   - Write
   - Edit
+  # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__get_context_tree_overview
+  - mcp__cogny__browse_context_tree
+  - mcp__cogny__read_context_node
+  - mcp__cogny__search_context
   # Optional handoff to LinkedIn Ads when the user wants to publish as sponsored content
   - mcp__cogny__linkedin_ads__*
 ---
@@ -42,7 +47,23 @@ ffmpeg -version | head -1 # ≥ 6
 
 LinkedIn videos die when the audience is "everyone". They work when the first frame names the role.
 
-If `.agents/product-marketing-context.md` exists, read it first. Then ask:
+Try sources in order:
+
+**1a. Local file** — `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md`.
+
+**1b. Cogny MCP context tree** — if the `cogny` MCP server is connected:
+
+```
+mcp__cogny__get_context_tree_overview
+mcp__cogny__search_context query="ICP" / query="<product>"
+mcp__cogny__read_context_node node_id="…"
+```
+
+The tree usually contains the actual ICP definition (role, seniority, industry, ARR band) and the most-recent shipped feature — both load-bearing for LinkedIn-grade specificity. Check it before public scraping.
+
+**1c. Public web** — `WebFetch` the URL only if 1a/1b are empty.
+
+Then ask:
 
 1. Who is this for, by **role and seniority**? ("Heads of Demand Gen at B2B SaaS, $5–50M ARR")
 2. What is the *expensive* problem they have right now? (cost, time, headcount)

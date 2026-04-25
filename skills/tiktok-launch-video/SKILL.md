@@ -13,6 +13,11 @@ allowed-tools:
   - Read
   - Write
   - Edit
+  # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__get_context_tree_overview
+  - mcp__cogny__browse_context_tree
+  - mcp__cogny__read_context_node
+  - mcp__cogny__search_context
   # Optional handoff to TikTok Ads when the user wants to publish as an ad
   - mcp__cogny__tiktok_ads__*
 ---
@@ -44,10 +49,25 @@ If either fails, ask the user to install Node 22+ and FFmpeg before continuing.
 
 ### 1. Gather product context
 
-If `.agents/product-marketing-context.md` (or `.claude/product-marketing-context.md`) exists, read it first. Otherwise:
+Try sources in this order — stop at the first one that gives you enough to write the script. Don't redo work the user has already done.
 
-- If a URL was passed, `WebFetch` the page and extract: product name, value prop, core benefit, target user, one concrete proof point (number, customer, before/after).
-- If a brief was passed, use it. Ask only for what's missing from the **TikTok hook checklist** below.
+**1a. Local file** — read `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md` if present.
+
+**1b. Cogny MCP context tree** — if the `cogny` MCP server is connected (check via tools — `mcp__cogny__get_context_tree_overview` or any `mcp__cogny__*` tool), query it:
+
+```
+mcp__cogny__get_context_tree_overview          # see what's documented
+mcp__cogny__search_context query="<product>"   # pull customer / pricing / positioning nodes
+mcp__cogny__read_context_node node_id="…"      # drill into the most relevant nodes
+```
+
+The context tree usually contains things public scraping can't: real customer names, ICP, pricing tiers, current quarter goals, what's been launched recently, what's on the roadmap. **Check it before falling back to web scraping.**
+
+**1c. Public web** — if a URL was passed and 1a/1b didn't give you enough, `WebFetch` the page and extract product name, value prop, core benefit, target user, one concrete proof point.
+
+**1d. User brief** — if a short brief was passed, use it directly.
+
+After 1a–1d, ask the user only for what's still missing from the **TikTok hook checklist** below.
 
 **TikTok hook checklist** (what you actually need before you can write the script):
 

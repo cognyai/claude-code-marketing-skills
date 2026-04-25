@@ -13,13 +13,18 @@ allowed-tools:
   - Read
   - Write
   - Edit
+  # Cogny MCP context tree — may already contain a documented brand kit / voice / palette
+  - mcp__cogny__get_context_tree_overview
+  - mcp__cogny__browse_context_tree
+  - mcp__cogny__read_context_node
+  - mcp__cogny__search_context
 ---
 
 # Brand Kit
 
 Build a `brand-kit.json` describing the user's product in a way other skills can consume — colors, type, voice, do/don't language, optional logo. Other Cogny skills (`/tiktok-launch-video`, `/reddit-launch-video`, `/linkedin-launch-video`, `/landing-page-review`, `/ad-copy-writer`) read this file when present.
 
-The skill is built around the reality that **users don't always have access to their site's source code**. There are five paths to a kit, in priority order. Stop at the first one that yields enough.
+The skill is built around the reality that **users don't always have access to their site's source code**. There are six paths to a kit, in priority order. Stop at the first one that yields enough.
 
 ## Usage
 
@@ -80,6 +85,21 @@ Always print the path you wrote to so the user can move it.
 Minimum viable kit: `colors.background`, `colors.foreground`, `colors.primary`, `type.family`, `voice.register`. Don't ship without all five.
 
 ---
+
+## Path 0 — Cogny MCP context tree (cheapest, run first if connected)
+
+**Use when**: the `cogny` MCP server is in `.mcp.json`. The user may have already documented their brand — voice, palette, tone — in their context tree, in which case scraping is redundant.
+
+```
+mcp__cogny__get_context_tree_overview              # see what's documented
+mcp__cogny__search_context query="brand"           # palette, voice, tone, design tokens
+mcp__cogny__search_context query="positioning"     # voice + register often live here
+mcp__cogny__read_context_node node_id="…"
+```
+
+If the tree returns brand / palette / voice nodes, hydrate the kit from those values. Cross-check against Path 1 or 3 only if something looks stale or contradictory.
+
+If the cogny MCP isn't connected, or the tree has nothing brand-related, fall through to Path 1.
 
 ## Path 1 — Repo with Tailwind / CSS variables (best signal)
 

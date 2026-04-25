@@ -13,6 +13,11 @@ allowed-tools:
   - Read
   - Write
   - Edit
+  # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__get_context_tree_overview
+  - mcp__cogny__browse_context_tree
+  - mcp__cogny__read_context_node
+  - mcp__cogny__search_context
   # Optional handoff to Reddit Ads when the user wants to publish as a promoted post
   - mcp__cogny__reddit_ads__*
 ---
@@ -42,7 +47,23 @@ ffmpeg -version | head -1 # ≥ 6
 
 Reddit only works if you know *which subreddit* the video is meant for. The same product needs different angles for r/SaaS, r/marketing, r/programming, and r/Entrepreneur.
 
-If `.agents/product-marketing-context.md` exists, read it first. Then ask (don't skip):
+Try sources in order:
+
+**1a. Local file** — `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md`.
+
+**1b. Cogny MCP context tree** — if the `cogny` MCP server is connected:
+
+```
+mcp__cogny__get_context_tree_overview
+mcp__cogny__search_context query="<product>"
+mcp__cogny__read_context_node node_id="…"
+```
+
+The tree often contains the customer / community language and proof points that determine which subreddits will tolerate the post. Check it before falling back to web scraping.
+
+**1c. Public web** — `WebFetch` the URL only if 1a/1b are empty or thin.
+
+Then ask (don't skip — these can't be derived from any of 1a–1c):
 
 1. Which **2–3 subreddits** is this targeting? (be specific — `r/marketing`, not "marketers")
 2. What's the *honest* one-liner that subreddit would actually upvote?
