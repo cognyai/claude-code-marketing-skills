@@ -1,0 +1,128 @@
+<!doctype html>
+<!--
+  TikTok-native launch video — 1080x1920, 15s, 5 beats.
+  Copy this file into a HyperFrames project as `index.html` and edit
+  the copy / colors / timings. Do NOT remove the data-* attributes or
+  the window.__timelines registration.
+
+  Beat structure (default 15s):
+    0.0s – 1.5s    Hook            (pattern interrupt, big text)
+    1.5s – 4.5s    Pain / Setup    (relatable problem, kinetic text)
+    4.5s – 8.5s    Reveal / Demo   (the product moment — replace with screen capture)
+    8.5s – 12.0s   Proof           (number, customer, before/after)
+   12.0s – 15.0s   CTA             (concrete next action, repeated visually)
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* Brand kit — wire these from brand-kit.json. Defaults are TikTok-safe (high contrast). */
+      :root {
+        --bg:      #0a0a0a;
+        --fg:      #ffffff;
+        --primary: #00ff9d;   /* main accent */
+        --accent:  #00ff9d;   /* secondary accent (pills, CTAs) */
+        --muted:   #9aa0a6;
+        --card:    #14181f;
+        --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body:    var(--font-display);
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: var(--bg);
+        font-family: var(--font-body);
+        color: var(--fg);
+      }
+
+      /* TikTok safe area: keep important content out of the top 220px and bottom 320px */
+      .stage {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 240px 80px 340px;
+        text-align: center;
+      }
+
+      .hook    { font-size: 150px; font-weight: 900; line-height: 1.0;  letter-spacing: -0.04em; font-family: var(--font-display); }
+      .body    { font-size:  92px; font-weight: 800; line-height: 1.1;  letter-spacing: -0.02em; }
+      .caption { font-size:  78px; font-weight: 700; line-height: 1.15; }
+      .cta     { font-size: 110px; font-weight: 900; line-height: 1.05; letter-spacing: -0.03em; font-family: var(--font-display); }
+
+      .accent  { color: var(--primary); }
+      .muted   { color: var(--muted); }
+      .pill {
+        display: inline-block; padding: 18px 40px; border-radius: 999px;
+        background: var(--accent); color: var(--bg); font-size: 64px; font-weight: 900;
+        margin-top: 40px;
+      }
+
+      /* Optional product UI placeholder — swap with `hyperframes capture <url>` output */
+      .ui-mock {
+        width: 880px; height: 720px; border-radius: 32px;
+        background: var(--card);
+        border: 2px solid color-mix(in srgb, var(--fg) 8%, transparent);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 56px; color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="tiktok-launch"
+      data-start="0"
+      data-duration="15"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- Beat 1: Hook (0–1.5s) -->
+      <div id="hook" class="clip stage" data-start="0" data-duration="1.5" data-track-index="0">
+        <div class="hook">POV: you spent <span class="accent">$50k</span> on ads last month</div>
+      </div>
+
+      <!-- Beat 2: Pain (1.5–4.5s) -->
+      <div id="pain" class="clip stage" data-start="1.5" data-duration="3" data-track-index="0">
+        <div class="body">…and you still don't know which campaign drove which deal.</div>
+      </div>
+
+      <!-- Beat 3: Reveal (4.5–8.5s) — replace .ui-mock with a screen capture of the real product -->
+      <div id="reveal" class="clip stage" data-start="4.5" data-duration="4" data-track-index="0">
+        <div class="caption">We connected your CRM to your ad accounts.</div>
+        <div class="ui-mock" style="margin-top:40px">[product screenshot]</div>
+      </div>
+
+      <!-- Beat 4: Proof (8.5–12s) -->
+      <div id="proof" class="clip stage" data-start="8.5" data-duration="3.5" data-track-index="0">
+        <div class="hook"><span class="accent">+271%</span></div>
+        <div class="body" style="margin-top:24px">organic clicks in 3 weeks<br/><span class="muted">— GrowthHackers</span></div>
+      </div>
+
+      <!-- Beat 5: CTA (12–15s) -->
+      <div id="cta" class="clip stage" data-start="12" data-duration="3" data-track-index="0">
+        <div class="cta">Search <span class="accent">cogny</span> on Google →</div>
+        <div class="pill">link in bio</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Each beat: hard cut in, slight kinetic motion on the headline.
+      tl.from("#hook .hook",       { y: 80, opacity: 0, duration: 0.35, ease: "power3.out" }, 0.0)
+        .from("#pain .body",       { y: 60, opacity: 0, duration: 0.35, ease: "power3.out" }, 1.5)
+        .from("#reveal .caption",  { y: 60, opacity: 0, duration: 0.35, ease: "power3.out" }, 4.5)
+        .from("#reveal .ui-mock",  { scale: 0.92, opacity: 0, duration: 0.45, ease: "power2.out" }, 4.7)
+        .from("#proof .hook",      { scale: 0.7, opacity: 0, duration: 0.45, ease: "back.out(2)" }, 8.5)
+        .from("#proof .body",      { y: 40, opacity: 0, duration: 0.35, ease: "power3.out" }, 8.9)
+        .from("#cta .cta",         { y: 60, opacity: 0, duration: 0.35, ease: "power3.out" }, 12.0)
+        .from("#cta .pill",        { scale: 0.7, opacity: 0, duration: 0.4,  ease: "back.out(2.5)" }, 12.5);
+
+      window.__timelines["tiktok-launch"] = tl;
+    </script>
+  </body>
+</html>

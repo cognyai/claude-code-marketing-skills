@@ -1,0 +1,165 @@
+<!doctype html>
+<!--
+  LinkedIn-native launch video — 1080x1080, ~45s, 5 beats.
+  Caption-first, B2B register, every claim numbered, deliberate motion.
+
+  Beat structure (default 45s):
+    0.0s –  4.0s   Hook            (name the role / name the problem)
+    4.0s – 14.0s   Context         (what was broken before — concrete, not abstract)
+    14.0s – 28.0s  What we shipped (real product, real screenshot, plain language)
+    28.0s – 38.0s  Proof           (numbers, customer name, methodology)
+    38.0s – 45.0s  CTA             (concrete next action)
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1080px; overflow: hidden;
+        background: #fafaf7;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        color: #111;
+      }
+
+      .stage {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        justify-content: center;
+        padding: 96px;
+      }
+
+      /* LinkedIn pins profile name top-15% on autoplay — keep it clean */
+      .topbar { position: absolute; top: 0; left: 0; right: 0; height: 160px; }
+
+      .label {
+        font-size: 26px; font-weight: 600;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: #6b7280; margin-bottom: 28px;
+      }
+      .hook   { font-size: 88px; font-weight: 700; line-height: 1.1;  letter-spacing: -0.025em; }
+      .body   { font-size: 64px; font-weight: 600; line-height: 1.25; letter-spacing: -0.015em; }
+      .small  { font-size: 38px; font-weight: 500; line-height: 1.35; color: #374151; }
+      .accent { color: #d97706; } /* warm amber, not LinkedIn blue */
+
+      .stat-row { display: flex; gap: 64px; align-items: flex-end; margin-top: 16px; }
+      .stat-num { font-size: 168px; font-weight: 700; line-height: 1.0; letter-spacing: -0.04em; }
+      .stat-label { font-size: 32px; font-weight: 500; color: #6b7280; line-height: 1.25; max-width: 280px; }
+
+      .ui-mock {
+        width: 920px; height: 480px; border-radius: 16px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 8px 32px rgba(17, 24, 39, 0.06);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px; color: #9ca3af;
+        margin-top: 12px;
+      }
+
+      .quote {
+        border-left: 4px solid #d97706;
+        padding-left: 28px;
+        margin-top: 12px;
+      }
+
+      .cta-pill {
+        display: inline-block;
+        padding: 22px 48px;
+        background: #111;
+        color: #fff;
+        border-radius: 999px;
+        font-size: 44px;
+        font-weight: 600;
+        margin-top: 36px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="linkedin-launch"
+      data-start="0"
+      data-duration="45"
+      data-width="1080"
+      data-height="1080"
+    >
+      <!-- Beat 1: Hook (0–4s) -->
+      <div id="hook" class="clip stage" data-start="0" data-duration="4" data-track-index="0">
+        <div class="label">for: heads of demand gen, B2B SaaS</div>
+        <div class="hook">If your CRM and your ad accounts<br/>still don't talk to each other —<br/>this 30-second clip is for you.</div>
+      </div>
+
+      <!-- Beat 2: Context (4–14s) -->
+      <div id="context" class="clip stage" data-start="4" data-duration="10" data-track-index="0">
+        <div class="label">the problem</div>
+        <div class="body">
+          You spend $50K+ a month on paid.<br/>
+          You can tell which campaign drove a click.<br/>
+          You can't tell which campaign drove a deal.
+        </div>
+        <div class="small" style="margin-top:32px">
+          So you guess. Or you pay an analyst $120K to guess for you.
+        </div>
+      </div>
+
+      <!-- Beat 3: What we shipped (14–28s) -->
+      <div id="shipped" class="clip stage" data-start="14" data-duration="14" data-track-index="0">
+        <div class="label">what we shipped</div>
+        <div class="body">
+          One MCP server. Connects Google Ads, Meta,<br/>
+          Search Console, HubSpot, and Klaviyo<br/>
+          to Claude Code or Cursor.
+        </div>
+        <div class="ui-mock">[ real product screenshot ]</div>
+      </div>
+
+      <!-- Beat 4: Proof (28–38s) -->
+      <div id="proof" class="clip stage" data-start="28" data-duration="10" data-track-index="0">
+        <div class="label">one customer · 3 weeks</div>
+        <div class="stat-row">
+          <div>
+            <div class="stat-num accent">+271%</div>
+            <div class="stat-label">organic clicks vs. baseline</div>
+          </div>
+          <div>
+            <div class="stat-num">0.66%</div>
+            <div class="stat-label">CTR, up from 0.29%</div>
+          </div>
+        </div>
+        <div class="quote" style="margin-top:32px">
+          <div class="small">
+            "It caught things we'd never have found manually."<br/>
+            <span style="font-weight:600;color:#111">— Yi Li, CEO, GrowthHackers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beat 5: CTA (38–45s) -->
+      <div id="cta" class="clip stage" data-start="38" data-duration="7" data-track-index="0">
+        <div class="label">if you want the breakdown</div>
+        <div class="body">Comment <span class="accent">"breakdown"</span> and I'll send the case study.</div>
+        <div class="cta-pill">Or: cogny.com/agent — $9/mo</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Deliberate, slow tweens — buyers read this as competent
+      tl.from("#hook .hook",       { y: 28, opacity: 0, duration: 0.6, ease: "power2.out" }, 0.3)
+        .from("#context .body",    { y: 24, opacity: 0, duration: 0.6, ease: "power2.out" }, 4.3)
+        .from("#context .small",   { y: 16, opacity: 0, duration: 0.5, ease: "power2.out" }, 6.0)
+        .from("#shipped .body",    { y: 24, opacity: 0, duration: 0.6, ease: "power2.out" }, 14.3)
+        .from("#shipped .ui-mock", { y: 28, opacity: 0, duration: 0.7, ease: "power2.out" }, 16.0)
+        .from("#proof .stat-num",  { y: 32, opacity: 0, duration: 0.6, ease: "power2.out", stagger: 0.2 }, 28.3)
+        .from("#proof .quote",     { y: 20, opacity: 0, duration: 0.5, ease: "power2.out" }, 31.0)
+        .from("#cta .body",        { y: 24, opacity: 0, duration: 0.6, ease: "power2.out" }, 38.3)
+        .from("#cta .cta-pill",    { y: 16, opacity: 0, duration: 0.5, ease: "power2.out" }, 39.5);
+
+      window.__timelines["linkedin-launch"] = tl;
+    </script>
+  </body>
+</html>

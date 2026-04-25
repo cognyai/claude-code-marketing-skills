@@ -1,0 +1,152 @@
+<!doctype html>
+<!--
+  Reddit-native launch video — 1080x1080, ~30s, 6 beats.
+  Light mode, low polish, screenshot-driven, with a self-aware tradeoff card.
+
+  Beat structure (default 30s):
+    0.0s –  3.0s   Title           (flat declarative sentence — no theatrics)
+    3.0s –  9.0s   Context         (what it is, who it's for, in plain English)
+    9.0s – 16.0s   Demo            (real product screenshot or screen capture)
+   16.0s – 22.0s   Numbers         (concrete result, methodology hint)
+   22.0s – 26.0s   Tradeoff        (honest "what it doesn't do yet")
+   26.0s – 30.0s   CTA             (link / repo / comments)
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1080px; overflow: hidden;
+        background: #f7f7f5;
+        font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        color: #1a1a1b;
+      }
+
+      .stage {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: flex-start; justify-content: center;
+        padding: 80px;
+      }
+
+      .label   { font-size: 28px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #878a8c; margin-bottom: 24px; }
+      .title   { font-size: 72px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+      .body    { font-size: 56px; font-weight: 500; line-height: 1.3; color: #1a1a1b; }
+      .muted   { color: #6b6c6f; }
+      .accent  { color: #ff4500; } /* Reddit upvote orange — use sparingly */
+
+      .row { display: flex; gap: 32px; align-items: center; }
+
+      .stat-num { font-size: 160px; font-weight: 700; line-height: 1.0; letter-spacing: -0.03em; }
+      .stat-label { font-size: 36px; font-weight: 500; color: #6b6c6f; line-height: 1.2; }
+
+      .ui-mock {
+        width: 920px; height: 540px; border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #d3d6da;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px; color: #b0b3b8;
+      }
+
+      /* Tradeoff card — boxed callout, signals self-awareness */
+      .callout {
+        border-left: 6px solid #ff4500;
+        padding: 24px 32px;
+        background: #fff;
+        border-radius: 4px;
+      }
+
+      .link {
+        font-size: 56px; font-weight: 600;
+        color: #1a1a1b; text-decoration: underline; text-decoration-color: #ff4500;
+        text-underline-offset: 8px; text-decoration-thickness: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="reddit-launch"
+      data-start="0"
+      data-duration="30"
+      data-width="1080"
+      data-height="1080"
+    >
+      <!-- Beat 1: Title (0–3s) — flat, declarative -->
+      <div id="title" class="clip stage" data-start="0" data-duration="3" data-track-index="0">
+        <div class="label">r/marketing · self post</div>
+        <div class="title">Built an AI marketing agent that actually reads<br/>your data. Here's the demo.</div>
+      </div>
+
+      <!-- Beat 2: Context (3–9s) -->
+      <div id="context" class="clip stage" data-start="3" data-duration="6" data-track-index="0">
+        <div class="label">what it is</div>
+        <div class="body">
+          Connect your Google Ads, Search Console, and CRM via MCP.<br/>
+          Ask questions in plain English. Get the SQL, the chart,<br/>
+          and the action item — not just a dashboard.
+        </div>
+      </div>
+
+      <!-- Beat 3: Demo (9–16s) — replace .ui-mock with a real screen capture -->
+      <div id="demo" class="clip stage" data-start="9" data-duration="7" data-track-index="0">
+        <div class="label">the demo</div>
+        <div class="ui-mock" style="margin-top:24px">[ real product screenshot ]</div>
+      </div>
+
+      <!-- Beat 4: Numbers (16–22s) -->
+      <div id="numbers" class="clip stage" data-start="16" data-duration="6" data-track-index="0">
+        <div class="label">one customer, 3 weeks</div>
+        <div class="row" style="margin-top:16px">
+          <div>
+            <div class="stat-num accent">+271%</div>
+            <div class="stat-label">organic clicks</div>
+          </div>
+          <div>
+            <div class="stat-num">+154%</div>
+            <div class="stat-label">AI citations</div>
+          </div>
+        </div>
+        <div class="body muted" style="margin-top:32px; font-size:32px">
+          Methodology: Search Console click delta vs. 4-week trailing baseline.
+        </div>
+      </div>
+
+      <!-- Beat 5: Tradeoff (22–26s) — the self-aware card -->
+      <div id="tradeoff" class="clip stage" data-start="22" data-duration="4" data-track-index="0">
+        <div class="label">what it doesn't do yet</div>
+        <div class="callout" style="margin-top:16px">
+          <div class="body">
+            No native Pinterest, X Ads, or Snap connectors.<br/>
+            Reporting is read-only — no automated bid changes.
+          </div>
+        </div>
+      </div>
+
+      <!-- Beat 6: CTA (26–30s) -->
+      <div id="cta" class="clip stage" data-start="26" data-duration="4" data-track-index="0">
+        <div class="label">if you want to try it</div>
+        <div class="link" style="margin-top:24px">cogny.com/agent · $9/mo · MIT skills repo in comments</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Slow, restrained motion — no bounce, no scale tricks
+      tl.from("#title .title",        { y: 24, opacity: 0, duration: 0.6, ease: "power2.out" }, 0.2)
+        .from("#context .body",       { y: 20, opacity: 0, duration: 0.6, ease: "power2.out" }, 3.2)
+        .from("#demo .ui-mock",       { y: 30, opacity: 0, duration: 0.7, ease: "power2.out" }, 9.3)
+        .from("#numbers .stat-num",   { y: 20, opacity: 0, duration: 0.5, ease: "power2.out", stagger: 0.15 }, 16.2)
+        .from("#tradeoff .callout",   { y: 20, opacity: 0, duration: 0.5, ease: "power2.out" }, 22.2)
+        .from("#cta .link",           { y: 20, opacity: 0, duration: 0.5, ease: "power2.out" }, 26.2);
+
+      window.__timelines["reddit-launch"] = tl;
+    </script>
+  </body>
+</html>
