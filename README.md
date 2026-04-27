@@ -67,6 +67,7 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 | Email Report | `/email-report` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Auto-write the weekly/monthly email performance report in 3 formats — Slack, CEO email, board deck section |
 | Revenue Audit | `/revenue-audit` | Klaviyo / Mailchimp / Rule / Get a Newsletter | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
 | Drop-off Rescue | `/drop-off-rescue` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft re-engagement emails, schedule sends — reruns weekly without double-sending |
+| Community Pulse | `/community-pulse` | Discord | Weekly digest — new joins, hot/dead channels, top contributors, lurker→active conversions, unanswered questions, 3–6 actions you can ship in 15 min |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
 
 ### Setting up Premium Skills
@@ -93,11 +94,11 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 
 **Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
 
-**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, and Get a Newsletter. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, Get a Newsletter, and Discord. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
 
 ```
 Your Claude Code ──MCP──> Cogny MCP Server ──OAuth/Token──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
-    (local)                (hosted)                           Klaviyo / Mailchimp / Rule / Get a Newsletter
+    (local)                (hosted)                           Klaviyo / Mailchimp / Rule / Get a Newsletter / Discord
                                                               (your accounts)
 ```
 ## Results
