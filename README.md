@@ -24,6 +24,13 @@ git clone https://github.com/cognyai/claude-code-marketing-skills.git
 cp -r claude-code-marketing-skills/skills/* .claude/skills/
 ```
 
+For Codex, copy them into your Codex skills directory:
+
+```bash
+git clone https://github.com/cognyai/claude-code-marketing-skills.git
+cp -r claude-code-marketing-skills/skills/* "${CODEX_HOME:-$HOME/.codex}/skills/"
+```
+
 ## Free Skills (no account needed)
 
 These skills work immediately using web search and public data:
