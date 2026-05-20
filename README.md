@@ -56,6 +56,9 @@ These skills work immediately using web search and public data:
 | Website Migration Audit | `/website-migration-audit` | Compare production vs staging — SEO parity, content integrity, launch readiness (enhanced with Search Console data when connected) |
 | Welcome Series Writer | `/welcome-series` | Generate a full 5-email welcome series from a brand URL — ready to paste into any ESP |
 | Deliverability Check | `/deliverability-check` | Audit SPF / DKIM / DMARC / BIMI on your sending domain, with a prioritized fix order |
+| Performance Max Launch Kit | `/pmax-launch-kit` | Build a full Performance Max campaign — asset group copy, search themes, audience signals, shot list — from a brand URL |
+| GA4 Measurement Plan | `/ga4-measurement-plan` | Event taxonomy, parameters, custom dimensions, and key events — a GA4 spec built from a site URL |
+| GTM Tracking Plan | `/gtm-tracking-plan` | GTM tags, triggers, variables, and copy-paste dataLayer snippets — a build spec from a site URL |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
@@ -75,12 +78,22 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 | Revenue Audit | `/revenue-audit` | Klaviyo / Mailchimp / Rule / Get a Newsletter | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
 | Drop-off Rescue | `/drop-off-rescue` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft re-engagement emails, schedule sends — reruns weekly without double-sending |
 | Community Pulse | `/community-pulse` | Discord | Weekly digest — new joins, hot/dead channels, top contributors, lurker→active conversions, unanswered questions, 3–6 actions you can ship in 15 min |
+| Google Ads Audit | `/google-ads-audit` | Google Ads | Account-wide audit across every campaign type — structure, budget, conversion tracking, wasted spend, ranked by estimated $ impact |
+| Google Ads Monitor | `/google-ads-monitor` | Google Ads | Weekly health check — budget pacing, spend spikes, disapproved ads, conversion-tracking breaks — week-over-week |
+| Performance Max Audit | `/pmax-audit` | Google Ads | Deep PMax audit — asset group strength, asset coverage, search themes, audience signals, brand exclusions |
+| Search Campaign Audit | `/search-campaign-audit` | Google Ads | Deep Search audit — quality score, match types, negative keyword gaps, search terms, ad strength |
+| Shopping Campaign Audit | `/shopping-campaign-audit` | Google Ads | Deep Shopping / retail audit — feed coverage, listing-group granularity, wasted product spend |
+| Demand Gen Audit | `/demand-gen-audit` | Google Ads | Deep Demand Gen audit — audience strategy, creative format diversity, fatigue, CPA vs goal |
+| GA4 Audit | `/ga4-audit` | GA4 | GA4 configuration + data-quality audit — key events, custom dimensions, PII, attribution, `(not set)` traffic |
+| GA4 Monitor | `/ga4-monitor` | GA4 | Weekly GA4 check — sessions, conversions, revenue, channel mix, tracking-break alerts — week-over-week |
+| GTM Audit | `/gtm-audit` | GTM | GTM container audit — duplicate GA4 tags, orphaned tags, trigger coverage, Consent Mode, naming hygiene |
+| GTM Monitor | `/gtm-monitor` | GTM | Weekly GTM check — diffs tags / triggers / variables vs last week, flags risky changes and unpublished drafts |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
 
 ### Setting up Premium Skills
 
 1. Sign up at [cogny.com](https://cogny.com)
-2. Connect your accounts (Google Ads, Meta Ads, Search Console, Bing, LinkedIn, HubSpot) and email platforms (Klaviyo, Mailchimp, Rule, Get a Newsletter)
+2. Connect your accounts (Google Ads, Google Analytics 4, Google Tag Manager, Meta Ads, Search Console, Bing, LinkedIn, HubSpot) and email platforms (Klaviyo, Mailchimp, Rule, Get a Newsletter)
 3. Add Cogny to your `.mcp.json`:
 
 ```json
@@ -101,7 +114,7 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 
 **Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
 
-**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, Get a Newsletter, and Discord. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Google Analytics 4, Google Tag Manager, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, Get a Newsletter, and Discord. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
 
 ```
 Your Claude Code ──MCP──> Cogny MCP Server ──OAuth/Token──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
