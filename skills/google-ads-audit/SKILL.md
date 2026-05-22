@@ -93,21 +93,62 @@ Flag:
 
 ### 3. Conversion tracking sanity
 
+**You must run BOTH queries below before flagging anything in this section.**
+Structure alone (which actions exist, which are `primary_for_goal`) tells you nothing
+about what is actually driving the bidding signal. A "Primary" action with zero recent
+volume is harmless; a "Secondary" action can be a deliberate dedup choice. Always
+cross-reference the structure against actual conversion volume per action.
+
+**3a. Structure — which conversion actions exist:**
+
 ```sql
 SELECT conversion_action.name, conversion_action.status, conversion_action.type,
   conversion_action.category, conversion_action.counting_type,
-  conversion_action.primary_for_goal
+  conversion_action.primary_for_goal, conversion_action.include_in_conversions_metric
 FROM conversion_action
 ```
 
-Flag:
-- **No primary conversion actions** — bidding is flying blind
-- Conversion actions with status `REMOVED` or `HIDDEN` still referenced
-- `MANY_PER_CLICK` counting on a lead-gen action (usually should be `ONE_PER_CLICK`)
-- Multiple near-duplicate conversion actions (double-counting risk)
+**3b. Volume — which actions are actually firing (last 30 days):**
 
-Cross-check: pull `metrics.all_conversions` vs `metrics.conversions` at account level.
-A large gap means important conversions are not set as primary.
+```sql
+SELECT segments.conversion_action_name, segments.conversion_action_category,
+  metrics.all_conversions, metrics.all_conversions_value,
+  metrics.conversions, metrics.conversions_value
+FROM customer
+WHERE segments.date DURING LAST_30_DAYS
+```
+
+Then join: for every conversion action with non-trivial volume, note whether it is
+Primary or Secondary, and whether `metrics.conversions` (the bidding signal) or only
+`metrics.all_conversions` (the reporting signal) is counting it.
+
+**3c. Reconcile against account totals.** Pull account-level `metrics.conversions`
+and `metrics.conversions_value` for the same window — the sum across Primary actions
+in 3b should match (within rounding). If it does, the `metrics.conversions` figure is
+the real booking/purchase/lead action and bidding is grounded in real value. **State
+this explicitly in the report before making any tracking claim.**
+
+Flag (each must be backed by a number from 3b, not a guess from 3a):
+- **No primary action has volume in the last 30 days** — bidding really is flying
+  blind. (Note: a Primary action with zero recent volume is harmless, not broken.)
+- A high-volume real revenue action (purchase, booking, qualified lead) is Secondary
+  while a low-value proxy (page view, "Lokala åtgärder", "Detail product page view")
+  is the only Primary — *that* is the "bidding on page views" pattern.
+- `MANY_PER_CLICK` counting on a lead-gen action with meaningful volume (double-counts
+  leads; usually should be `ONE_PER_CLICK`).
+- Two near-duplicate Primary actions both firing on the same event (e.g. on-site
+  booking + GA4 booking both Primary → double-counted bid signal).
+- `REMOVED` / `HIDDEN` actions still receiving conversions.
+
+**Do NOT flag:**
+- A gap between `all_conversions` and `conversions`, by itself. That gap is just the
+  pile of Secondary actions (store visits, GA4 echoes of an on-site action, local
+  actions, contacts, etc.) — it is often correct and intentional. Only flag if a
+  *high-value, non-duplicate* action is sitting in Secondary.
+- View-through / page-view actions marked `primary_for_goal = true` if they have
+  ~0 conversions in 3b — they cost nothing, so they are not polluting bidding.
+- A Secondary GA4 purchase when on-site purchase/booking is Primary — that is the
+  textbook dedup pattern, not a bug.
 
 ### 4. Budget pacing (last 7 days)
 
@@ -210,6 +251,12 @@ Action types: `campaign_optimization`, `budget_adjustment`, `bidding_strategy`,
 
 1. **Conversion tracking is checked first and weighted highest.** A great account on
    broken tracking is a broken account — say so loudly.
-2. **Quote real numbers**, never benchmarks alone. "CPA is $48" beats "CPA looks high."
-3. **One finding per issue**, each with a dollar figure. No vague advice.
-4. This skill **reads only**. It never pauses campaigns or changes budgets.
+2. **Never claim tracking is broken from structure alone.** `primary_for_goal = true`
+   on an action only matters if that action *has volume*. Pull conversion volume per
+   action (step 3b) and reconcile against account totals (step 3c) *before* writing
+   any finding about conversion tracking, CPA basis, or bidding signal quality. If
+   `metrics.conversions` reconciles to a real revenue/booking action, say so — don't
+   wave at the `all_conversions` gap as if it implies missing primaries.
+3. **Quote real numbers**, never benchmarks alone. "CPA is $48" beats "CPA looks high."
+4. **One finding per issue**, each with a dollar figure. No vague advice.
+5. This skill **reads only**. It never pauses campaigns or changes budgets.
