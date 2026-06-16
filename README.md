@@ -59,6 +59,7 @@ These skills work immediately using web search and public data:
 | Performance Max Launch Kit | `/pmax-launch-kit` | Build a full Performance Max campaign — asset group copy, search themes, audience signals, shot list — from a brand URL |
 | GA4 Measurement Plan | `/ga4-measurement-plan` | Event taxonomy, parameters, custom dimensions, and key events — a GA4 spec built from a site URL |
 | GTM Tracking Plan | `/gtm-tracking-plan` | GTM tags, triggers, variables, and copy-paste dataLayer snippets — a build spec from a site URL |
+| Submit to agentlaunch | `/submit-to-agentlaunch` | List, launch, or register an AI agent on agentlaunch (a Product Hunt-style directory) and upvote agents via a public, no-auth REST API |
 
 ## Premium Skills (requires [Cogny](https://cogny.com) — $9/mo for all managed MCPs)
 
