@@ -1,7 +1,7 @@
 ---
 name: cwv-audit
 description: Core Web Vitals Reference — LCP, INP, CLS thresholds, root causes, optimization fixes, CrUX BigQuery queries, web-vitals library usage, and SEO impact
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,12 +13,20 @@ allowed-tools:
   - Read
   - Write
   # Search Console tools (when connected via Cogny MCP)
-  - mcp__cogny__search_console__tool_list_properties
-  - mcp__cogny__search_console__tool_get_search_analytics
-  - mcp__cogny__search_console__tool_inspect_url
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Search_Console__tool_list_properties
+  - mcp__cogny__mcp__Google_Search_Console__tool_get_search_analytics
+  - mcp__cogny__mcp__Google_Search_Console__tool_inspect_url
   # GA4 tools
-  - mcp__cogny__google_analytics_4__tool_run_report
-  - mcp__cogny__google_analytics_4__tool_get_property
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_get_property
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_custom_dimensions
+  # Provider discovery
+  - mcp__cogny__list_integrations
+  # Microsoft Clarity (read-only, 10 API requests/day per project)
+  - mcp__cogny__mcp__Microsoft_Clarity__get_live_insights
+  - mcp__cogny__mcp__Microsoft_Clarity__get_insights_history
+  - mcp__cogny__mcp__Microsoft_Clarity__get_api_quota
 ---
 
 # Core Web Vitals Reference
@@ -46,6 +54,52 @@ You are a Core Web Vitals performance expert. Use this reference to help users u
 When the user asks a question, find the relevant section below and provide precise, actionable answers. If Search Console or GA4 MCP tools are available, use them to pull real data for the user's site.
 
 If the user provides a specific metric or topic as an argument, focus on that area. Otherwise, provide an overview of all three vitals and their current thresholds.
+
+## Works with
+
+The reference needs no accounts. For a real site, pull field data in this order:
+
+| Job | Primary | Also answers it | No account |
+|-----|---------|-----------------|------------|
+| p75 LCP / INP / CLS per URL or origin | CrUX via PageSpeed Insights API (Bash curl `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=<url>&strategy=mobile&key=<free API key>`) | CrUX API (key required), CrUX BigQuery (Cloud only) | Same PSI call, free key |
+| Your own RUM (if `web-vitals` sends events to GA4) | GA4 `tool_run_report` | GA4 BigQuery export SQL below (Cloud only) | — |
+| Which slow pages matter (traffic weighting) | Google Search Console `tool_get_search_analytics` (`dimensions: ["page"]`) | GA4 `tool_run_report` (`screenPageViews` by `pagePath`) | `site:` search |
+| Interaction pain that often sits behind bad INP | Microsoft Clarity `get_live_insights` | — | — |
+
+**PSI and CrUX without an account (reliable path):** keyless PSI calls share a quota and often return HTTP 429. Ask the user for a free Google Cloud API key (enable "PageSpeed Insights API" and "Chrome UX Report API") and append `&key=<key>`; Google recommends a key for anything automated (https://developers.google.com/speed/docs/insights/v5/get-started).
+
+```bash
+curl -s "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=<url>&strategy=mobile&category=performance&key=$PSI_KEY" -o psi.json -w "%{http_code}\n"
+# Field data straight from CrUX (key required, 150 queries/min, free):
+curl -s -X POST "https://chromeuxreport.googleapis.com/v1/records:queryRecord?key=$PSI_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"origin":"https://www.example.com","formFactor":"PHONE"}'
+```
+
+If PSI returns 429 (or `loadingExperience` has no `metrics`) and there's no key, report **"no field data"** for LCP/INP/CLS. Don't estimate p75 from lab numbers or from experience; run the lab checklist below instead and label it lab.
+
+**Lab checklist without PSI (curl only, no JS execution):**
+
+```bash
+U="<url>"
+curl -sL -o page.html -w "TTFB %{time_starttransfer}s | total %{time_total}s | HTML %{size_download} B | redirects %{num_redirects}\n" "$U"
+# Render-blocking: <script src> in <head> without async/defer/type=module, and stylesheets
+sed -n '1,/<\/head>/p' page.html | grep -oiE '<script[^>]+src=[^>]*>' | grep -viE 'async|defer|type="module"'
+sed -n '1,/<\/head>/p' page.html | grep -oiE '<link[^>]+rel="?stylesheet[^>]*>'
+# JS / CSS weight: fetch each referenced asset and sum size_download
+grep -oiE '(src|href)="[^"]+\.(js|css)[^"]*"' page.html | head -30
+# Image formats and lazy-loading / dimensions (CLS)
+grep -oiE '<img[^>]+>' page.html | grep -oiE '\.(jpe?g|png|gif|webp|avif|svg)' | sort | uniq -c
+grep -oiE '<img[^>]+>' page.html | grep -viE 'width=' | head
+```
+
+Flag: TTFB > 0.8 s, > 1 MB of JS or > 150 KB of CSS, render-blocking scripts in `<head>`, JPEG/PNG heroes with no WebP/AVIF, `<img>` without width/height, `loading="lazy"` on the likely LCP image. Resolve relative asset URLs against the page URL before fetching them.
+
+**GA4 (Solo or Cloud):** If Cogny isn't connected, skip this and note what connecting adds (your own RUM by page and device, traffic-weighted priorities). `mcp__cogny__mcp__Google_Analytics_4__tool_run_report` with `property_id`, `date_ranges` (last 28 days), `dimensions: ["eventName", "pagePath", "deviceCategory"]`, `metrics: ["eventCount", "eventValue"]`, filtered to `eventName` in LCP/INP/CLS. This gives sample counts and averages, not p75. If `metric_rating` is registered (check `tool_list_custom_dimensions`), add `customEvent:metric_rating` to get the share of poor ratings per page. True p75 needs CrUX or the BigQuery export.
+
+**Clarity (optional):** If Cogny isn't connected, skip this and note what connecting adds. Otherwise `mcp__cogny__mcp__Microsoft_Clarity__get_live_insights` (`num_of_days: 3`, `dimensions: ["URL", "Device"]`, `metrics: ["Dead Click Count", "Rage Click Count", "Script Error Count"]`). The project gets 10 requests a day, so call `get_api_quota` first and reuse cached answers. Clarity has no CWV numbers; use it only to corroborate where users hit unresponsive UI.
+
+Name the source on every number ("CrUX p75 LCP 3.1 s mobile", "GA4 RUM: 18% poor INP on /checkout").
 
 ---
 
@@ -371,7 +425,15 @@ onCLS((metric) => {
 
 ### CWV Scores by Origin
 
+CrUX publishes one table per month (`chrome-ux-report.all.YYYYMM`), released on the second Tuesday for the previous month. Never hardcode a month; resolve the latest one first:
+
 ```sql
+DECLARE latest STRING DEFAULT (
+  SELECT MAX(table_name)
+  FROM `chrome-ux-report.all.INFORMATION_SCHEMA.TABLES`
+  WHERE REGEXP_CONTAINS(table_name, r'^\d{6}$')
+);
+
 SELECT
   origin,
   form_factor.name AS device,
@@ -384,11 +446,12 @@ SELECT
   ROUND(SAFE_DIVIDE(
     SUM(IF(cls.start < 0.1, cls.density, 0)), SUM(cls.density)
   ), 4) AS cls_good_pct
-FROM `chrome-ux-report.all.202501`,
+FROM `chrome-ux-report.all.*`,
   UNNEST(largest_contentful_paint.histogram.bin) AS lcp,
   UNNEST(interaction_to_next_paint.histogram.bin) AS inp,
   UNNEST(cumulative_layout_shift.histogram.bin) AS cls
-WHERE origin = 'https://www.example.com'
+WHERE _TABLE_SUFFIX = latest
+  AND origin = 'https://www.example.com'
 GROUP BY origin, device
 ORDER BY device
 ```
@@ -413,8 +476,13 @@ LIMIT 50
 ### Trending CWV Over Time
 
 ```sql
+-- Last 13 months up to the latest published table
+DECLARE latest STRING DEFAULT (
+  SELECT MAX(table_name) FROM `chrome-ux-report.all.INFORMATION_SCHEMA.TABLES`
+  WHERE REGEXP_CONTAINS(table_name, r'^\d{6}$'));
+
 SELECT
-  yyyymm,
+  _TABLE_SUFFIX AS yyyymm,
   ROUND(SAFE_DIVIDE(
     SUM(IF(lcp.start < 2500, lcp.density, 0)), SUM(lcp.density)
   ), 4) AS lcp_good_pct,
@@ -429,7 +497,7 @@ FROM `chrome-ux-report.all.*`,
   UNNEST(interaction_to_next_paint.histogram.bin) AS inp,
   UNNEST(cumulative_layout_shift.histogram.bin) AS cls
 WHERE origin = 'https://www.example.com'
-  AND _TABLE_SUFFIX BETWEEN '202401' AND '202501'
+  AND _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m', DATE_SUB(PARSE_DATE('%Y%m', latest), INTERVAL 12 MONTH)) AND latest
   AND form_factor.name = 'phone'
 GROUP BY yyyymm
 ORDER BY yyyymm
@@ -438,6 +506,10 @@ ORDER BY yyyymm
 ### Competitor Comparison
 
 ```sql
+DECLARE latest STRING DEFAULT (
+  SELECT MAX(table_name) FROM `chrome-ux-report.all.INFORMATION_SCHEMA.TABLES`
+  WHERE REGEXP_CONTAINS(table_name, r'^\d{6}$'));
+
 WITH origins AS (
   SELECT origin FROM UNNEST([
     'https://www.yoursite.com',
@@ -457,11 +529,12 @@ SELECT
     SUM(IF(cls.start < 0.1, cls.density, 0)), SUM(cls.density)
   ), 4) AS cls_good_pct
 FROM origins o
-INNER JOIN `chrome-ux-report.all.202501` crux ON crux.origin = o.origin,
+INNER JOIN `chrome-ux-report.all.*` crux ON crux.origin = o.origin,
   UNNEST(largest_contentful_paint.histogram.bin) AS lcp,
   UNNEST(interaction_to_next_paint.histogram.bin) AS inp,
   UNNEST(cumulative_layout_shift.histogram.bin) AS cls
-WHERE form_factor.name = 'phone'
+WHERE crux._TABLE_SUFFIX = latest
+  AND form_factor.name = 'phone'
 GROUP BY o.origin, device
 ORDER BY o.origin, device
 ```

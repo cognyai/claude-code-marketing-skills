@@ -108,6 +108,11 @@ if echo "$INSTALLED" | grep -q "cursor"; then
     fi
   done
 
+  # Shared references (the MCP routing guide every Cogny skill points to)
+  for ref in "$SKILLS_DIR"/*/references/*.md; do
+    [ -f "$ref" ] && cp "$ref" "$TARGET/$(basename "$ref" .md).mdc"
+  done
+
   echo "Installed skills to .cursor/rules/"
 fi
 
@@ -145,3 +150,16 @@ echo "  /pre-send-qa              — Pre-flight QA before you hit send"
 echo "  /email-report             — Auto-write weekly/monthly stakeholder report"
 echo "  /revenue-audit            — Find email revenue leaks, ranked by \$ impact"
 echo "  /cogny                    — Full autonomous marketing agent"
+echo ""
+echo "Marketing Engineer stack (requires cogny.com):"
+echo "  /marketing-engineer       — Hub: setup, Monday loop, campaign end to end"
+echo "  /marketing-brain          — Build the brain every agent reads first"
+echo "  /customer-language        — Customers' exact words, from your sales calls"
+echo "  /campaign-ledger          — Campaign IDs everywhere, spend → revenue per ID"
+echo "  /buying-triggers          — Fresh-trigger accounts + sharp outreach drafts"
+echo "  /search-demand            — Pre-purchase questions + AI-engine visibility gaps"
+echo "  /creative-engine          — Distinct ad concepts, uploaded paused"
+echo "  /ad-kill-rules            — Enforce the evidence bar, pause-only"
+echo "  /closed-lost-revival      — Real loss reasons + reopen conditions"
+echo "  /social-engine            — Organic test kitchen → promote winners"
+echo "  /performance-memo         — Monday memo: keep / kill / change / test"

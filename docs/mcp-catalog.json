@@ -1,0 +1,5581 @@
+{
+ "naming": "mcp__<prefix>__<tool>; via .mcp.json key 'cogny': mcp__cogny__mcp__<prefix>__<tool>",
+ "source_ref": "mcp-proxy-v2026.10.12-4",
+ "core": {
+  "all": [
+   "cogny_status",
+   "list_integrations",
+   "start_integration_oauth",
+   "set_integration_token",
+   "disconnect_integration",
+   "add_custom_mcp_server",
+   "refresh_mcp_discovery",
+   "get_context_tree_overview",
+   "browse_context_tree",
+   "read_context_node",
+   "search_context",
+   "write_context_node",
+   "archive_context_node"
+  ],
+  "solo": [
+   "get_queue_status",
+   "get_next_task",
+   "complete_task",
+   "heartbeat",
+   "list_findings",
+   "get_finding",
+   "create_finding",
+   "update_finding",
+   "update_finding_status",
+   "delete_finding",
+   "delete_findings",
+   "get_skill_package"
+  ],
+  "cloud": [
+   "list_tickets",
+   "get_ticket",
+   "get_winner_status",
+   "update_ticket_status",
+   "add_comment",
+   "assign_ticket",
+   "get_comments",
+   "link_pr_to_ticket",
+   "get_ticket_source_context",
+   "create_ticket",
+   "add_ticket_feedback",
+   "list_datasets",
+   "list_tables",
+   "inspect_schema",
+   "execute_bigquery_sql",
+   "create_bigquery_table",
+   "append_bigquery_rows",
+   "create_bigquery_view",
+   "show_report_section",
+   "show_metrics",
+   "show_budget",
+   "list_reports",
+   "get_report",
+   "get_report_section"
+  ],
+  "flagged": [
+   "create_automation",
+   "update_automation",
+   "list_automations",
+   "run_automation",
+   "get_automation_run",
+   "create_script",
+   "update_script",
+   "delete_script",
+   "list_scripts",
+   "get_script",
+   "run_script",
+   "get_script_run",
+   "list_script_runs",
+   "get_script_sdk_reference"
+  ]
+ },
+ "servers": {
+  "Abicart": {
+   "display_name": "Abicart",
+   "proxy_dir": "abicart",
+   "category": "ecommerce",
+   "tools": [
+    {
+     "name": "get_shop",
+     "read_only": true
+    },
+    {
+     "name": "list_delivery_methods",
+     "read_only": true
+    },
+    {
+     "name": "list_payment_methods",
+     "read_only": true
+    },
+    {
+     "name": "get_schema",
+     "read_only": true
+    },
+    {
+     "name": "list_articles",
+     "read_only": true
+    },
+    {
+     "name": "count_articles",
+     "read_only": true
+    },
+    {
+     "name": "get_article",
+     "read_only": true
+    },
+    {
+     "name": "create_article",
+     "read_only": false
+    },
+    {
+     "name": "update_article",
+     "read_only": false
+    },
+    {
+     "name": "validate_article",
+     "read_only": true
+    },
+    {
+     "name": "list_article_groups",
+     "read_only": true
+    },
+    {
+     "name": "get_article_group_tree",
+     "read_only": true
+    },
+    {
+     "name": "get_article_group",
+     "read_only": true
+    },
+    {
+     "name": "update_article_group",
+     "read_only": false
+    },
+    {
+     "name": "list_orders",
+     "read_only": true
+    },
+    {
+     "name": "count_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "get_order_shipments",
+     "read_only": true
+    },
+    {
+     "name": "update_order",
+     "read_only": false
+    },
+    {
+     "name": "get_sales_summary",
+     "read_only": true
+    },
+    {
+     "name": "get_top_articles",
+     "read_only": true
+    },
+    {
+     "name": "list_customers",
+     "read_only": true
+    },
+    {
+     "name": "count_customers",
+     "read_only": true
+    },
+    {
+     "name": "get_customer",
+     "read_only": true
+    },
+    {
+     "name": "update_customer",
+     "read_only": false
+    },
+    {
+     "name": "list_customer_groups",
+     "read_only": true
+    },
+    {
+     "name": "list_custom_pages",
+     "read_only": true
+    },
+    {
+     "name": "get_custom_page",
+     "read_only": true
+    },
+    {
+     "name": "list_discounts",
+     "read_only": true
+    },
+    {
+     "name": "get_discount",
+     "read_only": true
+    },
+    {
+     "name": "create_discount",
+     "read_only": false
+    },
+    {
+     "name": "update_discount",
+     "read_only": false
+    },
+    {
+     "name": "call_method",
+     "read_only": false
+    }
+   ]
+  },
+  "Adobe_Analytics": {
+   "display_name": "Adobe Analytics",
+   "proxy_dir": "adobe_analytics",
+   "category": "web_analytics",
+   "tools": [
+    {
+     "name": "get_account_info",
+     "read_only": true
+    },
+    {
+     "name": "list_report_suites",
+     "read_only": true
+    },
+    {
+     "name": "list_dimensions",
+     "read_only": true
+    },
+    {
+     "name": "list_metrics",
+     "read_only": true
+    },
+    {
+     "name": "list_segments",
+     "read_only": true
+    },
+    {
+     "name": "list_calculated_metrics",
+     "read_only": true
+    },
+    {
+     "name": "run_report",
+     "read_only": true
+    }
+   ]
+  },
+  "Ahrefs": {
+   "display_name": "Ahrefs",
+   "proxy_dir": "ahrefs",
+   "category": "seo",
+   "tools": [
+    {
+     "name": "subscription_info",
+     "read_only": true
+    },
+    {
+     "name": "domain_rating",
+     "read_only": true
+    },
+    {
+     "name": "backlinks_stats",
+     "read_only": true
+    },
+    {
+     "name": "backlinks",
+     "read_only": true
+    },
+    {
+     "name": "refdomains",
+     "read_only": true
+    },
+    {
+     "name": "site_explorer_overview",
+     "read_only": true
+    },
+    {
+     "name": "organic_keywords",
+     "read_only": true
+    },
+    {
+     "name": "organic_competitors",
+     "read_only": true
+    },
+    {
+     "name": "top_pages",
+     "read_only": true
+    },
+    {
+     "name": "keywords_explorer",
+     "read_only": true
+    },
+    {
+     "name": "serp_overview",
+     "read_only": true
+    },
+    {
+     "name": "batch_analysis",
+     "read_only": true
+    }
+   ]
+  },
+  "cogny-ahrefs-lite": {
+   "display_name": "cogny-ahrefs-lite",
+   "proxy_dir": "ahrefs_lite",
+   "category": "seo",
+   "tools": [
+    {
+     "name": "tool_domain_rating",
+     "read_only": true
+    }
+   ]
+  },
+  "cogny-ai-visibility": {
+   "display_name": "cogny-ai-visibility",
+   "proxy_dir": "ai_visibility",
+   "category": "ai_search",
+   "tools": [
+    {
+     "name": "tool_check_ai_visibility",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ai_visibility_history",
+     "read_only": true
+    }
+   ]
+  },
+  "Apple_Search_Ads": {
+   "display_name": "Apple Search Ads",
+   "proxy_dir": "apple_search_ads",
+   "category": "paid_search",
+   "tools": [
+    {
+     "name": "tool_list_acls",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_targeting_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign_negative_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_group_negative_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_account_spend",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_keyword_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_search_term_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_geo_locations",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_targeting_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_campaign_negative_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_ad_group_negative_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_targeting_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_campaign_negative_keywords",
+     "read_only": false
+    }
+   ]
+  },
+  "AppsFlyer": {
+   "display_name": "AppsFlyer",
+   "proxy_dir": "appsflyer",
+   "category": "mobile_attribution",
+   "tools": [
+    {
+     "name": "get_partners_report",
+     "read_only": true
+    },
+    {
+     "name": "get_partners_daily_report",
+     "read_only": true
+    },
+    {
+     "name": "get_daily_report",
+     "read_only": true
+    },
+    {
+     "name": "get_geo_report",
+     "read_only": true
+    },
+    {
+     "name": "get_raw_installs",
+     "read_only": true
+    },
+    {
+     "name": "get_raw_in_app_events",
+     "read_only": true
+    },
+    {
+     "name": "get_raw_uninstalls",
+     "read_only": true
+    },
+    {
+     "name": "get_organic_installs",
+     "read_only": true
+    },
+    {
+     "name": "get_master_report",
+     "read_only": true
+    }
+   ]
+  },
+  "Azure_SQL": {
+   "display_name": "Azure SQL",
+   "proxy_dir": "azure_sql",
+   "category": "database",
+   "tools": [
+    {
+     "name": "get_server_info",
+     "read_only": true
+    },
+    {
+     "name": "list_tables",
+     "read_only": true
+    },
+    {
+     "name": "describe_table",
+     "read_only": true
+    },
+    {
+     "name": "run_query",
+     "read_only": true
+    }
+   ]
+  },
+  "Bidtheatre": {
+   "display_name": "Bidtheatre",
+   "proxy_dir": "bidtheatre",
+   "category": "programmatic",
+   "tools": [
+    {
+     "name": "list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_status",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_bids",
+     "read_only": true
+    },
+    {
+     "name": "list_advertisers",
+     "read_only": true
+    },
+    {
+     "name": "create_report",
+     "read_only": false
+    },
+    {
+     "name": "get_report",
+     "read_only": true
+    },
+    {
+     "name": "get_audience_selling_stats",
+     "read_only": true
+    }
+   ]
+  },
+  "Bing_Ads": {
+   "display_name": "Bing Ads",
+   "proxy_dir": "bing_ads",
+   "category": "paid_search",
+   "tools": [
+    {
+     "name": "tool_list_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_ad_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_responsive_search_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_add_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_negative_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_add_negative_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_negative_keywords",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_negative_keyword_lists",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_negative_keyword_list_items",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_keywords_to_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_keywords_from_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_negative_keyword_list_to_campaigns",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_negative_keyword_list_from_campaigns",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_report",
+     "read_only": true
+    }
+   ]
+  },
+  "Bing_Webmaster_Tools": {
+   "display_name": "Bing Webmaster Tools",
+   "proxy_dir": "bing_webmaster",
+   "category": "seo",
+   "tools": [
+    {
+     "name": "tool_get_sites",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_traffic_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_url_submission_quota",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_keyword_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_crawl_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_link_counts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_query_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_page_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_page_query_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_query_page_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_query_page_detail_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_crawl_issues",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_url_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_children_url_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_url_traffic_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_children_url_traffic_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_url_links",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_feeds",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_feed_details",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_query_traffic_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_keyword",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_related_keywords",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_crawl_settings",
+     "read_only": true
+    },
+    {
+     "name": "tool_submit_url",
+     "read_only": false
+    },
+    {
+     "name": "tool_submit_content",
+     "read_only": false
+    },
+    {
+     "name": "tool_submit_url_batch",
+     "read_only": false
+    },
+    {
+     "name": "tool_submit_feed",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_feed",
+     "read_only": false
+    },
+    {
+     "name": "tool_save_crawl_settings",
+     "read_only": false
+    }
+   ]
+  },
+  "Bloom": {
+   "display_name": "Bloom",
+   "proxy_dir": "bloom",
+   "category": "other",
+   "tools": [
+    {
+     "name": "bloom_get_account",
+     "read_only": true
+    },
+    {
+     "name": "bloom_list_brands",
+     "read_only": true
+    },
+    {
+     "name": "bloom_get_brand",
+     "read_only": true
+    },
+    {
+     "name": "bloom_get_brand_skill",
+     "read_only": true
+    },
+    {
+     "name": "bloom_list_images",
+     "read_only": true
+    },
+    {
+     "name": "bloom_get_image",
+     "read_only": true
+    }
+   ]
+  },
+  "cogny-brave-search": {
+   "display_name": "cogny-brave-search",
+   "proxy_dir": "brave_search",
+   "category": "web_search",
+   "tools": [
+    {
+     "name": "tool_brave_search",
+     "read_only": true
+    },
+    {
+     "name": "tool_brave_rank_check",
+     "read_only": true
+    },
+    {
+     "name": "tool_brave_news",
+     "read_only": true
+    }
+   ]
+  },
+  "Braze": {
+   "display_name": "Braze",
+   "proxy_dir": "braze",
+   "category": "email",
+   "tools": [
+    {
+     "name": "braze_list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_campaign_details",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_campaign_analytics",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_send_analytics",
+     "read_only": true
+    },
+    {
+     "name": "braze_list_canvases",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_canvas_details",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_canvas_analytics",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_canvas_summary",
+     "read_only": true
+    },
+    {
+     "name": "braze_list_segments",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_segment_details",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_segment_analytics",
+     "read_only": true
+    },
+    {
+     "name": "braze_list_custom_events",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_custom_event_analytics",
+     "read_only": true
+    },
+    {
+     "name": "braze_get_kpi_series",
+     "read_only": true
+    },
+    {
+     "name": "braze_list_email_unsubscribes",
+     "read_only": true
+    }
+   ]
+  },
+  "Brevo": {
+   "display_name": "Brevo",
+   "proxy_dir": "brevo",
+   "category": "email",
+   "tools": [
+    {
+     "name": "get_account",
+     "read_only": true
+    },
+    {
+     "name": "list_contacts",
+     "read_only": true
+    },
+    {
+     "name": "get_contact",
+     "read_only": true
+    },
+    {
+     "name": "create_contact",
+     "read_only": false
+    },
+    {
+     "name": "update_contact",
+     "read_only": false
+    },
+    {
+     "name": "delete_contact",
+     "read_only": false
+    },
+    {
+     "name": "list_contact_lists",
+     "read_only": true
+    },
+    {
+     "name": "get_list",
+     "read_only": true
+    },
+    {
+     "name": "create_list",
+     "read_only": false
+    },
+    {
+     "name": "update_list",
+     "read_only": false
+    },
+    {
+     "name": "delete_list",
+     "read_only": false
+    },
+    {
+     "name": "add_contacts_to_list",
+     "read_only": false
+    },
+    {
+     "name": "remove_contacts_from_list",
+     "read_only": false
+    },
+    {
+     "name": "list_contact_attributes",
+     "read_only": true
+    },
+    {
+     "name": "list_email_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_email_campaign",
+     "read_only": true
+    },
+    {
+     "name": "create_email_campaign",
+     "read_only": false
+    },
+    {
+     "name": "send_email_campaign_now",
+     "read_only": false
+    },
+    {
+     "name": "send_transactional_email",
+     "read_only": false
+    },
+    {
+     "name": "get_smtp_report",
+     "read_only": true
+    }
+   ]
+  },
+  "Microsoft_Clarity": {
+   "display_name": "Microsoft Clarity",
+   "proxy_dir": "clarity",
+   "category": "behavior_analytics",
+   "tools": [
+    {
+     "name": "get_live_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_insights_history",
+     "read_only": true
+    },
+    {
+     "name": "get_api_quota",
+     "read_only": true
+    }
+   ]
+  },
+  "Contentful": {
+   "display_name": "Contentful",
+   "proxy_dir": "contentful",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "contentful_get_space",
+     "read_only": true
+    },
+    {
+     "name": "contentful_list_entries",
+     "read_only": true
+    },
+    {
+     "name": "contentful_get_entry",
+     "read_only": true
+    },
+    {
+     "name": "contentful_list_assets",
+     "read_only": true
+    },
+    {
+     "name": "contentful_get_asset",
+     "read_only": true
+    },
+    {
+     "name": "contentful_list_content_types",
+     "read_only": true
+    },
+    {
+     "name": "contentful_get_content_type",
+     "read_only": true
+    },
+    {
+     "name": "contentful_list_locales",
+     "read_only": true
+    },
+    {
+     "name": "contentful_list_tags",
+     "read_only": true
+    }
+   ]
+  },
+  "Crisp": {
+   "display_name": "Crisp",
+   "proxy_dir": "crisp",
+   "category": "support",
+   "tools": [
+    {
+     "name": "get_website",
+     "read_only": true
+    },
+    {
+     "name": "list_website_operators",
+     "read_only": true
+    },
+    {
+     "name": "get_website_statistics",
+     "read_only": true
+    },
+    {
+     "name": "list_conversations",
+     "read_only": true
+    },
+    {
+     "name": "get_conversation",
+     "read_only": true
+    },
+    {
+     "name": "get_conversation_meta",
+     "read_only": true
+    },
+    {
+     "name": "get_conversation_messages",
+     "read_only": true
+    },
+    {
+     "name": "send_message_in_conversation",
+     "read_only": false
+    },
+    {
+     "name": "update_conversation_state",
+     "read_only": false
+    },
+    {
+     "name": "create_conversation",
+     "read_only": false
+    },
+    {
+     "name": "list_people_profiles",
+     "read_only": true
+    },
+    {
+     "name": "get_people_profile",
+     "read_only": true
+    },
+    {
+     "name": "create_people_profile",
+     "read_only": false
+    },
+    {
+     "name": "update_people_profile",
+     "read_only": false
+    },
+    {
+     "name": "list_people_conversations",
+     "read_only": true
+    },
+    {
+     "name": "list_people_events",
+     "read_only": true
+    }
+   ]
+  },
+  "Discord": {
+   "display_name": "Discord",
+   "proxy_dir": "discord",
+   "category": "community",
+   "tools": [
+    {
+     "name": "get_current_user",
+     "read_only": true
+    },
+    {
+     "name": "list_guilds",
+     "read_only": true
+    },
+    {
+     "name": "get_guild",
+     "read_only": true
+    },
+    {
+     "name": "list_guild_channels",
+     "read_only": true
+    },
+    {
+     "name": "get_channel",
+     "read_only": true
+    },
+    {
+     "name": "list_guild_members",
+     "read_only": true
+    },
+    {
+     "name": "get_channel_messages",
+     "read_only": true
+    },
+    {
+     "name": "send_message",
+     "read_only": false
+    }
+   ]
+  },
+  "Drip": {
+   "display_name": "Drip",
+   "proxy_dir": "drip",
+   "category": "email",
+   "tools": [
+    {
+     "name": "list_subscribers",
+     "read_only": true
+    },
+    {
+     "name": "get_subscriber",
+     "read_only": true
+    },
+    {
+     "name": "upsert_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "batch_subscribers",
+     "read_only": false
+    },
+    {
+     "name": "unsubscribe_from_all",
+     "read_only": false
+    },
+    {
+     "name": "delete_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "list_tags",
+     "read_only": true
+    },
+    {
+     "name": "apply_tag",
+     "read_only": false
+    },
+    {
+     "name": "remove_tag",
+     "read_only": false
+    },
+    {
+     "name": "record_event",
+     "read_only": false
+    },
+    {
+     "name": "batch_record_events",
+     "read_only": false
+    },
+    {
+     "name": "list_event_actions",
+     "read_only": true
+    },
+    {
+     "name": "list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "list_campaign_subscribers",
+     "read_only": true
+    },
+    {
+     "name": "subscribe_to_campaign",
+     "read_only": false
+    },
+    {
+     "name": "unsubscribe_from_campaign",
+     "read_only": false
+    },
+    {
+     "name": "list_workflows",
+     "read_only": true
+    },
+    {
+     "name": "get_workflow",
+     "read_only": true
+    },
+    {
+     "name": "activate_workflow",
+     "read_only": false
+    },
+    {
+     "name": "pause_workflow",
+     "read_only": false
+    },
+    {
+     "name": "start_subscriber_on_workflow",
+     "read_only": false
+    },
+    {
+     "name": "remove_subscriber_from_workflow",
+     "read_only": false
+    },
+    {
+     "name": "list_custom_field_identifiers",
+     "read_only": true
+    }
+   ]
+  },
+  "Fathom_Analytics": {
+   "display_name": "Fathom Analytics",
+   "proxy_dir": "fathom",
+   "category": "web_analytics",
+   "tools": [
+    {
+     "name": "list_sites",
+     "read_only": true
+    },
+    {
+     "name": "current_visitors",
+     "read_only": true
+    },
+    {
+     "name": "list_events",
+     "read_only": true
+    },
+    {
+     "name": "aggregate",
+     "read_only": true
+    },
+    {
+     "name": "list_email_reports",
+     "read_only": true
+    }
+   ]
+  },
+  "Fortnox": {
+   "display_name": "Fortnox",
+   "proxy_dir": "fortnox",
+   "category": "finance",
+   "tools": [
+    {
+     "name": "get_company_information",
+     "read_only": true
+    },
+    {
+     "name": "get_company_settings",
+     "read_only": true
+    },
+    {
+     "name": "get_me",
+     "read_only": true
+    },
+    {
+     "name": "get_locked_period",
+     "read_only": true
+    },
+    {
+     "name": "list_customers",
+     "read_only": true
+    },
+    {
+     "name": "get_customer",
+     "read_only": true
+    },
+    {
+     "name": "list_articles",
+     "read_only": true
+    },
+    {
+     "name": "get_article",
+     "read_only": true
+    },
+    {
+     "name": "list_suppliers",
+     "read_only": true
+    },
+    {
+     "name": "get_supplier",
+     "read_only": true
+    },
+    {
+     "name": "list_invoices",
+     "read_only": true
+    },
+    {
+     "name": "get_invoice",
+     "read_only": true
+    },
+    {
+     "name": "preview_invoice",
+     "read_only": true
+    },
+    {
+     "name": "list_invoice_payments",
+     "read_only": true
+    },
+    {
+     "name": "get_invoice_payment",
+     "read_only": true
+    },
+    {
+     "name": "list_supplier_invoices",
+     "read_only": true
+    },
+    {
+     "name": "get_supplier_invoice",
+     "read_only": true
+    },
+    {
+     "name": "list_supplier_invoice_payments",
+     "read_only": true
+    },
+    {
+     "name": "get_supplier_invoice_payment",
+     "read_only": true
+    },
+    {
+     "name": "list_vouchers",
+     "read_only": true
+    },
+    {
+     "name": "list_vouchers_by_series",
+     "read_only": true
+    },
+    {
+     "name": "get_voucher",
+     "read_only": true
+    },
+    {
+     "name": "list_voucher_series",
+     "read_only": true
+    },
+    {
+     "name": "get_voucher_series",
+     "read_only": true
+    },
+    {
+     "name": "list_accounts",
+     "read_only": true
+    },
+    {
+     "name": "get_account",
+     "read_only": true
+    },
+    {
+     "name": "list_account_charts",
+     "read_only": true
+    },
+    {
+     "name": "list_predefined_accounts",
+     "read_only": true
+    },
+    {
+     "name": "list_financial_years",
+     "read_only": true
+    },
+    {
+     "name": "get_financial_year",
+     "read_only": true
+    },
+    {
+     "name": "list_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "list_offers",
+     "read_only": true
+    },
+    {
+     "name": "get_offer",
+     "read_only": true
+    },
+    {
+     "name": "list_projects",
+     "read_only": true
+    },
+    {
+     "name": "get_project",
+     "read_only": true
+    },
+    {
+     "name": "list_cost_centers",
+     "read_only": true
+    },
+    {
+     "name": "list_employees",
+     "read_only": true
+    },
+    {
+     "name": "get_employee",
+     "read_only": true
+    },
+    {
+     "name": "list_currencies",
+     "read_only": true
+    },
+    {
+     "name": "list_units",
+     "read_only": true
+    },
+    {
+     "name": "list_terms_of_payments",
+     "read_only": true
+    },
+    {
+     "name": "list_modes_of_payments",
+     "read_only": true
+    },
+    {
+     "name": "list_terms_of_deliveries",
+     "read_only": true
+    },
+    {
+     "name": "list_way_of_deliveries",
+     "read_only": true
+    },
+    {
+     "name": "list_price_lists",
+     "read_only": true
+    },
+    {
+     "name": "list_prices",
+     "read_only": true
+    }
+   ]
+  },
+  "Framer": {
+   "display_name": "Framer",
+   "proxy_dir": "framer",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "get_project_info",
+     "read_only": true
+    },
+    {
+     "name": "list_collections",
+     "read_only": true
+    },
+    {
+     "name": "get_collection_fields",
+     "read_only": true
+    },
+    {
+     "name": "get_collection_items",
+     "read_only": true
+    },
+    {
+     "name": "add_collection_items",
+     "read_only": false
+    },
+    {
+     "name": "update_collection_item",
+     "read_only": false
+    },
+    {
+     "name": "remove_collection_items",
+     "read_only": false
+    },
+    {
+     "name": "list_redirects",
+     "read_only": true
+    },
+    {
+     "name": "add_redirects",
+     "read_only": false
+    },
+    {
+     "name": "remove_redirects",
+     "read_only": false
+    },
+    {
+     "name": "get_analytics_docs",
+     "read_only": true
+    },
+    {
+     "name": "query_analytics",
+     "read_only": true
+    },
+    {
+     "name": "publish_site",
+     "read_only": false
+    }
+   ]
+  },
+  "Google_Analytics_4": {
+   "display_name": "Google Analytics 4",
+   "proxy_dir": "ga4",
+   "category": "web_analytics",
+   "tools": [
+    {
+     "name": "tool_list_account_summaries",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_property",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_data_streams",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_metadata",
+     "read_only": true
+    },
+    {
+     "name": "tool_run_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_run_realtime_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_custom_dimensions",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_custom_metrics",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_conversion_events",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_google_ads_links",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_archive_audience",
+     "read_only": false
+    }
+   ]
+  },
+  "Get_a_Newsletter": {
+   "display_name": "Get a Newsletter",
+   "proxy_dir": "getanewsletter",
+   "category": "email",
+   "tools": [
+    {
+     "name": "tool_list_contacts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_contact",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_contact",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_contact",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_contact",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_lists",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_list",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_drafts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_draft",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_draft",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_draft",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_draft",
+     "read_only": false
+    },
+    {
+     "name": "tool_copy_draft",
+     "read_only": false
+    },
+    {
+     "name": "tool_send_draft",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_sent",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_sent",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_scheduled",
+     "read_only": true
+    },
+    {
+     "name": "tool_delete_scheduled",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_reports",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_bounces",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_opens",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_opens_aggregated",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_have_not_opened",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_clicks",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_link_clicks",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_unsubscriptions",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_attributes",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_attribute",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_attribute",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_attribute",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_subscriptions",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_senders",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_sender",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_sender",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_sender",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_sender",
+     "read_only": false
+    }
+   ]
+  },
+  "Ghost": {
+   "display_name": "Ghost",
+   "proxy_dir": "ghost",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "get_site",
+     "read_only": true
+    },
+    {
+     "name": "list_posts",
+     "read_only": true
+    },
+    {
+     "name": "get_post",
+     "read_only": true
+    },
+    {
+     "name": "create_post",
+     "read_only": false
+    },
+    {
+     "name": "update_post",
+     "read_only": false
+    },
+    {
+     "name": "delete_post",
+     "read_only": false
+    },
+    {
+     "name": "list_pages",
+     "read_only": true
+    },
+    {
+     "name": "get_page",
+     "read_only": true
+    },
+    {
+     "name": "create_page",
+     "read_only": false
+    },
+    {
+     "name": "update_page",
+     "read_only": false
+    },
+    {
+     "name": "delete_page",
+     "read_only": false
+    },
+    {
+     "name": "list_tags",
+     "read_only": true
+    },
+    {
+     "name": "create_tag",
+     "read_only": false
+    },
+    {
+     "name": "list_members",
+     "read_only": true
+    },
+    {
+     "name": "get_member",
+     "read_only": true
+    },
+    {
+     "name": "create_member",
+     "read_only": false
+    },
+    {
+     "name": "update_member",
+     "read_only": false
+    },
+    {
+     "name": "delete_member",
+     "read_only": false
+    },
+    {
+     "name": "list_newsletters",
+     "read_only": true
+    }
+   ]
+  },
+  "Google_Ads": {
+   "display_name": "Google Ads",
+   "proxy_dir": "google_ads",
+   "category": "paid_search",
+   "tools": [
+    {
+     "name": "tool_list_accessible_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_execute_gaql",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_gaql_doc",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_reporting_view_doc",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_assign_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_bidding_strategy",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_portfolio_bidding_strategy",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_portfolio_bidding_strategy",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_location_targets",
+     "read_only": false
+    },
+    {
+     "name": "tool_search_geo_targets",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_cpc_bid",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_target_roas",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_keyword_cpc_bid",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_keywords_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_keyword_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_negative_keywords_to_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_negative_keywords_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_negative_keyword_from_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_responsive_search_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_placements_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_webpage_target_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_webpage_target_from_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_responsive_display_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_generate_keyword_ideas",
+     "read_only": true
+    },
+    {
+     "name": "tool_upload_asset",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_app_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_link_asset_to_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_link_asset_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_link_asset_to_customer",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_asset_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_asset_to_asset_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_asset_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_asset_from_asset_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_asset_group_signal",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_asset_group_signal",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_negative_keyword_list_to_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_negative_keyword_list_from_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_keywords_to_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_keywords_from_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_negative_keyword_list",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_conversion_action",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_conversion_action",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_audience_segments",
+     "read_only": true
+    },
+    {
+     "name": "tool_add_audience_to_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_audience_to_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_audience_bid_modifier",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_campaign_targeting_setting",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_app_campaign_setting",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_customer_conversion_goal",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_conversion_goal",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_campaign_goal_config_level",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_ad_schedule",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_device_bid_modifier",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_location_bid_modifier",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_responsive_search_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_asset_group_listing_groups",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_shopping_product_groups",
+     "read_only": false
+    }
+   ]
+  },
+  "GrowthBook": {
+   "display_name": "GrowthBook",
+   "proxy_dir": "growthbook",
+   "category": "experimentation",
+   "tools": [
+    {
+     "name": "list_experiments",
+     "read_only": true
+    },
+    {
+     "name": "get_experiment",
+     "read_only": true
+    },
+    {
+     "name": "list_experiment_results",
+     "read_only": true
+    },
+    {
+     "name": "get_experiment_results",
+     "read_only": true
+    },
+    {
+     "name": "list_features",
+     "read_only": true
+    },
+    {
+     "name": "get_feature",
+     "read_only": true
+    },
+    {
+     "name": "list_projects",
+     "read_only": true
+    },
+    {
+     "name": "list_fact_metrics",
+     "read_only": true
+    },
+    {
+     "name": "list_metrics",
+     "read_only": true
+    },
+    {
+     "name": "list_segments",
+     "read_only": true
+    },
+    {
+     "name": "list_data_sources",
+     "read_only": true
+    }
+   ]
+  },
+  "Google_Tag_Manager": {
+   "display_name": "Google Tag Manager",
+   "proxy_dir": "gtm",
+   "category": "tag_management",
+   "tools": [
+    {
+     "name": "tool_list_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_account",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_containers",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_container",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_container_snippet",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_workspaces",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_workspace",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_workspace_status",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_tag",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_triggers",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_trigger",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_variables",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_variable",
+     "read_only": true
+    },
+    {
+     "name": "tool_audit_container_privacy",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_trigger",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_trigger",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_trigger",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_variable",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_variable",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_variable",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_container",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_container",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_container",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_workspace",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_workspace",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_workspace",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_version",
+     "read_only": false
+    },
+    {
+     "name": "tool_publish_version",
+     "read_only": false
+    }
+   ]
+  },
+  "HubSpot_Forms": {
+   "display_name": "HubSpot Forms",
+   "proxy_dir": "hubspot_forms",
+   "category": "lead_forms",
+   "tools": [
+    {
+     "name": "list_forms",
+     "read_only": true
+    },
+    {
+     "name": "get_form",
+     "read_only": true
+    },
+    {
+     "name": "get_form_submissions",
+     "read_only": true
+    }
+   ]
+  },
+  "cogny-image-gen": {
+   "display_name": "cogny-image-gen",
+   "proxy_dir": "image_gen",
+   "category": "creative",
+   "tools": [
+    {
+     "name": "tool_generate_image",
+     "read_only": false
+    },
+    {
+     "name": "tool_generate_image_openai",
+     "read_only": false
+    },
+    {
+     "name": "tool_generate_video",
+     "read_only": false
+    },
+    {
+     "name": "tool_check_video_generation",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_brand_assets",
+     "read_only": true
+    },
+    {
+     "name": "tool_request_upload_url",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_file",
+     "read_only": false
+    },
+    {
+     "name": "tool_analyze_media",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_uploads",
+     "read_only": true
+    }
+   ]
+  },
+  "Klaviyo": {
+   "display_name": "Klaviyo",
+   "proxy_dir": "klaviyo",
+   "category": "email",
+   "tools": [
+    {
+     "name": "list_profiles",
+     "read_only": true
+    },
+    {
+     "name": "get_profile",
+     "read_only": true
+    },
+    {
+     "name": "create_profile",
+     "read_only": false
+    },
+    {
+     "name": "update_profile",
+     "read_only": false
+    },
+    {
+     "name": "list_lists",
+     "read_only": true
+    },
+    {
+     "name": "get_list",
+     "read_only": true
+    },
+    {
+     "name": "get_list_profiles",
+     "read_only": true
+    },
+    {
+     "name": "list_segments",
+     "read_only": true
+    },
+    {
+     "name": "get_segment",
+     "read_only": true
+    },
+    {
+     "name": "create_segment",
+     "read_only": false
+    },
+    {
+     "name": "update_segment",
+     "read_only": false
+    },
+    {
+     "name": "delete_segment",
+     "read_only": false
+    },
+    {
+     "name": "subscribe_profiles",
+     "read_only": false
+    },
+    {
+     "name": "unsubscribe_profiles",
+     "read_only": false
+    },
+    {
+     "name": "list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "get_campaign_message",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_values_report",
+     "read_only": true
+    },
+    {
+     "name": "list_flows",
+     "read_only": true
+    },
+    {
+     "name": "get_flow",
+     "read_only": true
+    },
+    {
+     "name": "update_flow_status",
+     "read_only": false
+    },
+    {
+     "name": "list_metrics",
+     "read_only": true
+    },
+    {
+     "name": "get_metric",
+     "read_only": true
+    },
+    {
+     "name": "list_events",
+     "read_only": true
+    },
+    {
+     "name": "create_event",
+     "read_only": false
+    },
+    {
+     "name": "list_templates",
+     "read_only": true
+    },
+    {
+     "name": "get_account",
+     "read_only": true
+    }
+   ]
+  },
+  "LinkedIn_Ads": {
+   "display_name": "LinkedIn Ads",
+   "proxy_dir": "linkedin_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_ad_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_creatives",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_analytics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_company_engagement",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_conversions",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_targeting_facets",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_targeting_entities",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_audience_counts",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_group_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_political_intent",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_targeting",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_creative",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_image",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_video",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_creative_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_conversion",
+     "read_only": false
+    }
+   ]
+  },
+  "LinkedIn_Organic": {
+   "display_name": "LinkedIn Organic",
+   "proxy_dir": "linkedin_organic",
+   "category": "organic_social",
+   "tools": [
+    {
+     "name": "tool_get_me",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_organizations",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_schedule_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_scheduled_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_scheduled_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_cancel_scheduled_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_organization_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_post",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_post_statistics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_organization_statistics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_follower_demographics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_comments",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_comment",
+     "read_only": false
+    },
+    {
+     "name": "tool_react_to_post",
+     "read_only": false
+    }
+   ]
+  },
+  "Litium": {
+   "display_name": "Litium",
+   "proxy_dir": "litium",
+   "category": "ecommerce",
+   "tools": [
+    {
+     "name": "get_store",
+     "read_only": true
+    },
+    {
+     "name": "list_orders",
+     "read_only": true
+    },
+    {
+     "name": "count_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "get_sales_summary",
+     "read_only": true
+    },
+    {
+     "name": "get_top_products",
+     "read_only": true
+    },
+    {
+     "name": "search_products",
+     "read_only": true
+    },
+    {
+     "name": "get_product",
+     "read_only": true
+    },
+    {
+     "name": "search_variants",
+     "read_only": true
+    },
+    {
+     "name": "get_variant",
+     "read_only": true
+    },
+    {
+     "name": "list_categories",
+     "read_only": true
+    },
+    {
+     "name": "get_category",
+     "read_only": true
+    },
+    {
+     "name": "list_inventories",
+     "read_only": true
+    },
+    {
+     "name": "get_inventory_items",
+     "read_only": true
+    },
+    {
+     "name": "list_price_lists",
+     "read_only": true
+    },
+    {
+     "name": "get_price_list_items",
+     "read_only": true
+    },
+    {
+     "name": "search_customers",
+     "read_only": true
+    },
+    {
+     "name": "get_customer",
+     "read_only": true
+    },
+    {
+     "name": "call_admin_api",
+     "read_only": true
+    }
+   ]
+  },
+  "Magnific": {
+   "display_name": "Magnific",
+   "proxy_dir": "magnific",
+   "category": "creative",
+   "tools": [
+    {
+     "name": "create_image_generation",
+     "read_only": false
+    },
+    {
+     "name": "get_image_task",
+     "read_only": true
+    },
+    {
+     "name": "create_image_upscale",
+     "read_only": false
+    },
+    {
+     "name": "get_upscale_task",
+     "read_only": true
+    },
+    {
+     "name": "create_precision_upscale",
+     "read_only": false
+    },
+    {
+     "name": "create_image_relight",
+     "read_only": false
+    },
+    {
+     "name": "create_image_style_transfer",
+     "read_only": false
+    },
+    {
+     "name": "create_background_removal",
+     "read_only": false
+    },
+    {
+     "name": "create_music_generation",
+     "read_only": false
+    },
+    {
+     "name": "list_music_tasks",
+     "read_only": true
+    },
+    {
+     "name": "get_music_task",
+     "read_only": true
+    },
+    {
+     "name": "create_sound_effect",
+     "read_only": false
+    },
+    {
+     "name": "list_sound_effect_tasks",
+     "read_only": true
+    },
+    {
+     "name": "get_sound_effect_task",
+     "read_only": true
+    },
+    {
+     "name": "list_team_members",
+     "read_only": true
+    },
+    {
+     "name": "list_team_api_keys",
+     "read_only": true
+    },
+    {
+     "name": "list_team_projects",
+     "read_only": true
+    },
+    {
+     "name": "list_team_groups",
+     "read_only": true
+    },
+    {
+     "name": "get_team_credit_usage",
+     "read_only": true
+    },
+    {
+     "name": "search_stock_images",
+     "read_only": true
+    },
+    {
+     "name": "search_icons",
+     "read_only": true
+    },
+    {
+     "name": "search_stock_videos",
+     "read_only": true
+    }
+   ]
+  },
+  "Mailchimp": {
+   "display_name": "Mailchimp",
+   "proxy_dir": "mailchimp",
+   "category": "email",
+   "tools": [
+    {
+     "name": "tool_get_account_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign_content",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_send_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_schedule_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_unschedule_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_replicate_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_campaign_content",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_audience",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_members",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_member",
+     "read_only": true
+    },
+    {
+     "name": "tool_add_member",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_member",
+     "read_only": false
+    },
+    {
+     "name": "tool_upsert_member",
+     "read_only": false
+    },
+    {
+     "name": "tool_archive_member",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_member_permanent",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_member_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_member_tags",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_segments",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_segment",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_segment",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_segment",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_segment",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_templates",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_template",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_template",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_template",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_template",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_reports",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_click_details",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_open_details",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_report_unsubscribed",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_automations",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_automation",
+     "read_only": true
+    },
+    {
+     "name": "tool_start_automation",
+     "read_only": false
+    },
+    {
+     "name": "tool_pause_automation",
+     "read_only": false
+    }
+   ]
+  },
+  "MailerLite": {
+   "display_name": "MailerLite",
+   "proxy_dir": "mailerlite",
+   "category": "email",
+   "tools": [
+    {
+     "name": "list_subscribers",
+     "read_only": true
+    },
+    {
+     "name": "get_subscriber",
+     "read_only": true
+    },
+    {
+     "name": "upsert_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "delete_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "assign_subscriber_to_group",
+     "read_only": false
+    },
+    {
+     "name": "unassign_subscriber_from_group",
+     "read_only": false
+    },
+    {
+     "name": "list_groups",
+     "read_only": true
+    },
+    {
+     "name": "get_group",
+     "read_only": true
+    },
+    {
+     "name": "create_group",
+     "read_only": false
+    },
+    {
+     "name": "update_group",
+     "read_only": false
+    },
+    {
+     "name": "delete_group",
+     "read_only": false
+    },
+    {
+     "name": "list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "schedule_campaign",
+     "read_only": false
+    },
+    {
+     "name": "cancel_campaign",
+     "read_only": false
+    },
+    {
+     "name": "get_campaign_activity",
+     "read_only": true
+    },
+    {
+     "name": "list_segments",
+     "read_only": true
+    },
+    {
+     "name": "get_segment",
+     "read_only": true
+    }
+   ]
+  },
+  "Meta_Ads": {
+   "display_name": "Meta Ads",
+   "proxy_dir": "meta_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_ad_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_sets",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_insights",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_pixels",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_custom_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_facebook_pages",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_url_tags",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_targeting",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_placements",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_set_custom_audiences",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_custom_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_set",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_creative",
+     "read_only": false
+    },
+    {
+     "name": "tool_resolve_partnership_ad_code",
+     "read_only": true
+    },
+    {
+     "name": "tool_upload_ad_image",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_video_thumbnails",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_preview",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_video",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_creative",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_website_custom_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_lookalike_audience",
+     "read_only": false
+    }
+   ]
+  },
+  "Mixpanel": {
+   "display_name": "Mixpanel",
+   "proxy_dir": "mixpanel",
+   "category": "product_analytics",
+   "tools": [
+    {
+     "name": "get_project_info",
+     "read_only": true
+    },
+    {
+     "name": "run_segmentation",
+     "read_only": true
+    },
+    {
+     "name": "list_funnels",
+     "read_only": true
+    },
+    {
+     "name": "get_funnel",
+     "read_only": true
+    },
+    {
+     "name": "get_retention",
+     "read_only": true
+    },
+    {
+     "name": "list_cohorts",
+     "read_only": true
+    },
+    {
+     "name": "run_insights_report",
+     "read_only": true
+    },
+    {
+     "name": "list_profiles",
+     "read_only": true
+    }
+   ]
+  },
+  "OpenAI_Ads": {
+   "display_name": "OpenAI Ads",
+   "proxy_dir": "openai_ads",
+   "category": "paid_search",
+   "tools": [
+    {
+     "name": "tool_get_ad_account",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_ad_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_group",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad",
+     "read_only": true
+    },
+    {
+     "name": "tool_upload_image",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_preview_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_insights",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_conversion_insights",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_geo_locations",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_custom_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_custom_audience",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_custom_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_custom_audience_members",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_custom_audience_members",
+     "read_only": false
+    },
+    {
+     "name": "tool_archive_custom_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_pixels",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_pixel_events",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_conversion_event_settings",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_pixel",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_conversion_event_setting",
+     "read_only": false
+    }
+   ]
+  },
+  "Pipedrive": {
+   "display_name": "Pipedrive",
+   "proxy_dir": "pipedrive",
+   "category": "crm",
+   "tools": [
+    {
+     "name": "list_deals",
+     "read_only": true
+    },
+    {
+     "name": "get_deal",
+     "read_only": true
+    },
+    {
+     "name": "list_persons",
+     "read_only": true
+    },
+    {
+     "name": "list_organizations",
+     "read_only": true
+    },
+    {
+     "name": "list_activities",
+     "read_only": true
+    },
+    {
+     "name": "list_pipelines",
+     "read_only": true
+    },
+    {
+     "name": "list_stages",
+     "read_only": true
+    },
+    {
+     "name": "list_products",
+     "read_only": true
+    },
+    {
+     "name": "list_deal_fields",
+     "read_only": true
+    },
+    {
+     "name": "list_users",
+     "read_only": true
+    }
+   ]
+  },
+  "Plausible": {
+   "display_name": "Plausible",
+   "proxy_dir": "plausible",
+   "category": "web_analytics",
+   "tools": [
+    {
+     "name": "query",
+     "read_only": true
+    },
+    {
+     "name": "aggregate",
+     "read_only": true
+    },
+    {
+     "name": "timeseries",
+     "read_only": true
+    },
+    {
+     "name": "breakdown",
+     "read_only": true
+    },
+    {
+     "name": "realtime_visitors",
+     "read_only": true
+    }
+   ]
+  },
+  "PostHog": {
+   "display_name": "PostHog",
+   "proxy_dir": "posthog",
+   "category": "product_analytics",
+   "tools": [
+    {
+     "name": "get_current_user",
+     "read_only": true
+    },
+    {
+     "name": "list_projects",
+     "read_only": true
+    },
+    {
+     "name": "list_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_insight",
+     "read_only": true
+    },
+    {
+     "name": "list_dashboards",
+     "read_only": true
+    },
+    {
+     "name": "list_events",
+     "read_only": true
+    },
+    {
+     "name": "list_event_definitions",
+     "read_only": true
+    },
+    {
+     "name": "list_property_definitions",
+     "read_only": true
+    },
+    {
+     "name": "list_persons",
+     "read_only": true
+    },
+    {
+     "name": "get_person",
+     "read_only": true
+    },
+    {
+     "name": "list_cohorts",
+     "read_only": true
+    },
+    {
+     "name": "list_session_recordings",
+     "read_only": true
+    },
+    {
+     "name": "list_feature_flags",
+     "read_only": true
+    }
+   ]
+  },
+  "Reddit_Ads": {
+   "display_name": "Reddit Ads",
+   "proxy_dir": "reddit_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_ad_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_reporting",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_targeting_options",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_custom_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_conversion_events",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_promotable_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_funding_instruments",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_funding",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_targeting",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_bid",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_custom_audience",
+     "read_only": false
+    }
+   ]
+  },
+  "Rule": {
+   "display_name": "Rule",
+   "proxy_dir": "rule",
+   "category": "email",
+   "tools": [
+    {
+     "name": "tool_list_subscribers",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_subscriber",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_subscriber_fields",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_subscriber",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_subscribers",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_subscriber_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_add_subscriber_tags",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_subscriber_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_clear_subscriber_tags",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_tag",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_clear_tag",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaign_statistics",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_send_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_schedule_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_send_transaction",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_templates",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_template",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_segments",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_customizations",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_customization",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_customization",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_suppressions",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_preference_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_subscriber_preferences",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_subscriber_preferences",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_journeys",
+     "read_only": true
+    }
+   ]
+  },
+  "Salesforce_Marketing_Cloud": {
+   "display_name": "Salesforce Marketing Cloud",
+   "proxy_dir": "salesforce_marketing_cloud",
+   "category": "email",
+   "tools": [
+    {
+     "name": "get_account",
+     "read_only": true
+    },
+    {
+     "name": "list_journeys",
+     "read_only": true
+    },
+    {
+     "name": "get_journey",
+     "read_only": true
+    },
+    {
+     "name": "list_entry_events",
+     "read_only": true
+    },
+    {
+     "name": "list_assets",
+     "read_only": true
+    },
+    {
+     "name": "get_asset",
+     "read_only": true
+    },
+    {
+     "name": "list_data_extensions",
+     "read_only": true
+    },
+    {
+     "name": "get_data_extension_fields",
+     "read_only": true
+    },
+    {
+     "name": "get_data_extension_rows",
+     "read_only": true
+    },
+    {
+     "name": "list_email_sends",
+     "read_only": true
+    },
+    {
+     "name": "list_triggered_sends",
+     "read_only": true
+    },
+    {
+     "name": "get_triggered_send_summary",
+     "read_only": true
+    },
+    {
+     "name": "get_journey_email_performance",
+     "read_only": true
+    }
+   ]
+  },
+  "Sanity": {
+   "display_name": "Sanity",
+   "proxy_dir": "sanity",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "tool_query_groq",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_document",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_documents",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_documents",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_schema_types",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_assets",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_references",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_or_replace_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_patch_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_documents_by_filter",
+     "read_only": false
+    },
+    {
+     "name": "tool_publish_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_unpublish_document",
+     "read_only": false
+    },
+    {
+     "name": "tool_batch_patch",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_image_from_url",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_file_from_url",
+     "read_only": false
+    }
+   ]
+  },
+  "Google_Search_Console": {
+   "display_name": "Google Search Console",
+   "proxy_dir": "search_console",
+   "category": "seo",
+   "tools": [
+    {
+     "name": "tool_list_properties",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_search_analytics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_sitemaps",
+     "read_only": true
+    },
+    {
+     "name": "tool_inspect_url",
+     "read_only": true
+    },
+    {
+     "name": "tool_submit_sitemap",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_sitemap",
+     "read_only": false
+    }
+   ]
+  },
+  "Segment": {
+   "display_name": "Segment",
+   "proxy_dir": "segment",
+   "category": "cdp",
+   "tools": [
+    {
+     "name": "get_workspace",
+     "read_only": true
+    },
+    {
+     "name": "list_sources",
+     "read_only": true
+    },
+    {
+     "name": "get_source",
+     "read_only": true
+    },
+    {
+     "name": "list_destinations",
+     "read_only": true
+    },
+    {
+     "name": "list_tracking_plans",
+     "read_only": true
+    },
+    {
+     "name": "list_tracking_plan_rules",
+     "read_only": true
+    },
+    {
+     "name": "get_events_volume",
+     "read_only": true
+    },
+    {
+     "name": "list_spaces",
+     "read_only": true
+    },
+    {
+     "name": "list_audiences",
+     "read_only": true
+    },
+    {
+     "name": "get_audience",
+     "read_only": true
+    },
+    {
+     "name": "list_audience_destinations",
+     "read_only": true
+    }
+   ]
+  },
+  "Semrush": {
+   "display_name": "Semrush",
+   "proxy_dir": "semrush",
+   "category": "seo",
+   "tools": [
+    {
+     "name": "domain_overview",
+     "read_only": true
+    },
+    {
+     "name": "domain_organic_keywords",
+     "read_only": true
+    },
+    {
+     "name": "domain_paid_keywords",
+     "read_only": true
+    },
+    {
+     "name": "domain_organic_competitors",
+     "read_only": true
+    },
+    {
+     "name": "backlinks_overview",
+     "read_only": true
+    },
+    {
+     "name": "backlinks",
+     "read_only": true
+    },
+    {
+     "name": "keyword_overview",
+     "read_only": true
+    },
+    {
+     "name": "phrase_related",
+     "read_only": true
+    },
+    {
+     "name": "phrase_organic",
+     "read_only": true
+    }
+   ]
+  },
+  "ShipStation": {
+   "display_name": "ShipStation",
+   "proxy_dir": "shipstation",
+   "category": "ecommerce",
+   "tools": [
+    {
+     "name": "list_warehouses",
+     "read_only": true
+    },
+    {
+     "name": "list_carriers",
+     "read_only": true
+    },
+    {
+     "name": "list_carrier_services",
+     "read_only": true
+    },
+    {
+     "name": "list_shipments",
+     "read_only": true
+    },
+    {
+     "name": "get_shipment",
+     "read_only": true
+    },
+    {
+     "name": "list_labels",
+     "read_only": true
+    },
+    {
+     "name": "get_label_tracking",
+     "read_only": true
+    },
+    {
+     "name": "list_fulfillments",
+     "read_only": true
+    },
+    {
+     "name": "list_products",
+     "read_only": true
+    },
+    {
+     "name": "get_inventory_levels",
+     "read_only": true
+    },
+    {
+     "name": "get_shipping_cost_summary",
+     "read_only": true
+    },
+    {
+     "name": "get_shipment_volume_summary",
+     "read_only": true
+    }
+   ]
+  },
+  "Shopify": {
+   "display_name": "Shopify",
+   "proxy_dir": "shopify",
+   "category": "ecommerce",
+   "tools": [
+    {
+     "name": "tool_get_shop_info",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_products",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_product",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_collections",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_collection",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_orders",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_order",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_customers",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_customer",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_locations",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_inventory_levels",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_discount_codes",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_automatic_discounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_abandoned_checkouts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_abandoned_checkout",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_product",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_product",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_product_variant",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_product_variant",
+     "read_only": false
+    },
+    {
+     "name": "tool_adjust_inventory",
+     "read_only": false
+    },
+    {
+     "name": "tool_set_inventory",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_collection",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_collection",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_products_to_collection",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_products_from_collection",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_discount_code",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_discount_code",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_automatic_discount",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_automatic_discount",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_blogs",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_blog",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_articles",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_article",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_pages",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_page",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_redirects",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_blog",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_blog",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_blog",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_article",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_article",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_article",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_page",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_page",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_page",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_redirect",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_redirect",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_metafields",
+     "read_only": true
+    },
+    {
+     "name": "tool_set_metafields",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_shop_locales",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_translatable_resource",
+     "read_only": true
+    },
+    {
+     "name": "tool_register_translations",
+     "read_only": false
+    },
+    {
+     "name": "tool_remove_translations",
+     "read_only": false
+    }
+   ]
+  },
+  "Simple_Analytics": {
+   "display_name": "Simple Analytics",
+   "proxy_dir": "simple_analytics",
+   "category": "web_analytics",
+   "tools": [
+    {
+     "name": "list_websites",
+     "read_only": true
+    },
+    {
+     "name": "stats",
+     "read_only": true
+    },
+    {
+     "name": "pages",
+     "read_only": true
+    },
+    {
+     "name": "referrers",
+     "read_only": true
+    },
+    {
+     "name": "events",
+     "read_only": true
+    }
+   ]
+  },
+  "Snapchat_Ads": {
+   "display_name": "Snapchat Ads",
+   "proxy_dir": "snapchat_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_organizations",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_ad_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_funding_sources",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_squads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_creatives",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_stats",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_segments",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_pixels",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_squad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_squad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_squad_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_squad_bid",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_squad_targeting",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    }
+   ]
+  },
+  "Supabase": {
+   "display_name": "Supabase",
+   "proxy_dir": "supabase",
+   "category": "database",
+   "tools": [
+    {
+     "name": "tool_list_tables",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_extensions",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_migrations",
+     "read_only": true
+    },
+    {
+     "name": "tool_execute_sql",
+     "read_only": true
+    },
+    {
+     "name": "tool_insert_row",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_project",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_project_url",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_anon_key",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_logs",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_advisors",
+     "read_only": true
+    }
+   ]
+  },
+  "Symplify": {
+   "display_name": "Symplify",
+   "proxy_dir": "symplify",
+   "category": "email",
+   "tools": [
+    {
+     "name": "list_properties",
+     "read_only": true
+    },
+    {
+     "name": "get_property",
+     "read_only": true
+    },
+    {
+     "name": "get_contact",
+     "read_only": true
+    },
+    {
+     "name": "get_contact_subscription_status",
+     "read_only": true
+    },
+    {
+     "name": "list_contact_messages",
+     "read_only": true
+    },
+    {
+     "name": "list_journeys",
+     "read_only": true
+    },
+    {
+     "name": "list_snippets",
+     "read_only": true
+    },
+    {
+     "name": "list_webhooks",
+     "read_only": true
+    },
+    {
+     "name": "get_filter",
+     "read_only": true
+    },
+    {
+     "name": "get_batch_status",
+     "read_only": true
+    },
+    {
+     "name": "get_batch_result",
+     "read_only": true
+    },
+    {
+     "name": "start_statistics_export",
+     "read_only": false
+    },
+    {
+     "name": "get_campaign_overview",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_report",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_link_performance",
+     "read_only": true
+    }
+   ]
+  },
+  "TikTok_Ads": {
+   "display_name": "TikTok Ads",
+   "proxy_dir": "tiktok_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_advertisers",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ad_groups",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_ads",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_insights",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_pixels",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_locations",
+     "read_only": true
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_ad_group_budget",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad_group",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_ad",
+     "read_only": false
+    },
+    {
+     "name": "tool_list_identities",
+     "read_only": true
+    },
+    {
+     "name": "tool_list_authorized_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_authorize_spark_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_video",
+     "read_only": false
+    }
+   ]
+  },
+  "Upsales": {
+   "display_name": "Upsales",
+   "proxy_dir": "upsales",
+   "category": "crm",
+   "tools": [
+    {
+     "name": "list_accounts",
+     "read_only": true
+    },
+    {
+     "name": "get_account",
+     "read_only": true
+    },
+    {
+     "name": "list_contacts",
+     "read_only": true
+    },
+    {
+     "name": "get_contact",
+     "read_only": true
+    },
+    {
+     "name": "list_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "list_opportunities",
+     "read_only": true
+    },
+    {
+     "name": "list_activities",
+     "read_only": true
+    },
+    {
+     "name": "get_activity",
+     "read_only": true
+    },
+    {
+     "name": "list_appointments",
+     "read_only": true
+    },
+    {
+     "name": "get_appointment",
+     "read_only": true
+    },
+    {
+     "name": "list_agreements",
+     "read_only": true
+    },
+    {
+     "name": "list_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign",
+     "read_only": true
+    },
+    {
+     "name": "list_leads",
+     "read_only": true
+    },
+    {
+     "name": "list_users",
+     "read_only": true
+    },
+    {
+     "name": "list_products",
+     "read_only": true
+    },
+    {
+     "name": "list_product_categories",
+     "read_only": true
+    },
+    {
+     "name": "list_segments",
+     "read_only": true
+    },
+    {
+     "name": "list_visits",
+     "read_only": true
+    },
+    {
+     "name": "get_metadata",
+     "read_only": true
+    },
+    {
+     "name": "query",
+     "read_only": true
+    }
+   ]
+  },
+  "Webflow": {
+   "display_name": "Webflow",
+   "proxy_dir": "webflow",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "list_sites",
+     "read_only": true
+    },
+    {
+     "name": "get_site",
+     "read_only": true
+    },
+    {
+     "name": "publish_site",
+     "read_only": false
+    },
+    {
+     "name": "list_collections",
+     "read_only": true
+    },
+    {
+     "name": "get_collection",
+     "read_only": true
+    },
+    {
+     "name": "create_collection",
+     "read_only": false
+    },
+    {
+     "name": "create_collection_field",
+     "read_only": false
+    },
+    {
+     "name": "update_collection_field",
+     "read_only": false
+    },
+    {
+     "name": "delete_collection_field",
+     "read_only": false
+    },
+    {
+     "name": "list_items",
+     "read_only": true
+    },
+    {
+     "name": "get_item",
+     "read_only": true
+    },
+    {
+     "name": "create_item",
+     "read_only": false
+    },
+    {
+     "name": "update_item",
+     "read_only": false
+    },
+    {
+     "name": "delete_item",
+     "read_only": false
+    },
+    {
+     "name": "publish_items",
+     "read_only": false
+    },
+    {
+     "name": "unpublish_items",
+     "read_only": false
+    },
+    {
+     "name": "list_pages",
+     "read_only": true
+    },
+    {
+     "name": "get_page",
+     "read_only": true
+    },
+    {
+     "name": "update_page_settings",
+     "read_only": false
+    },
+    {
+     "name": "get_page_content",
+     "read_only": true
+    },
+    {
+     "name": "update_page_content",
+     "read_only": false
+    },
+    {
+     "name": "list_redirects",
+     "read_only": true
+    },
+    {
+     "name": "create_redirect",
+     "read_only": false
+    },
+    {
+     "name": "update_redirect",
+     "read_only": false
+    },
+    {
+     "name": "delete_redirect",
+     "read_only": false
+    },
+    {
+     "name": "get_custom_domains",
+     "read_only": true
+    },
+    {
+     "name": "list_forms",
+     "read_only": true
+    },
+    {
+     "name": "list_form_submissions",
+     "read_only": true
+    }
+   ]
+  },
+  "Wix": {
+   "display_name": "Wix",
+   "proxy_dir": "wix",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "get_site_analytics",
+     "read_only": true
+    },
+    {
+     "name": "search_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "query_products",
+     "read_only": true
+    },
+    {
+     "name": "search_products_v3",
+     "read_only": true
+    },
+    {
+     "name": "query_contacts",
+     "read_only": true
+    },
+    {
+     "name": "query_coupons",
+     "read_only": true
+    }
+   ]
+  },
+  "WooCommerce": {
+   "display_name": "WooCommerce",
+   "proxy_dir": "woocommerce",
+   "category": "ecommerce",
+   "tools": [
+    {
+     "name": "list_products",
+     "read_only": true
+    },
+    {
+     "name": "get_product",
+     "read_only": true
+    },
+    {
+     "name": "create_product",
+     "read_only": false
+    },
+    {
+     "name": "update_product",
+     "read_only": false
+    },
+    {
+     "name": "delete_product",
+     "read_only": false
+    },
+    {
+     "name": "list_product_variations",
+     "read_only": true
+    },
+    {
+     "name": "get_product_variation",
+     "read_only": true
+    },
+    {
+     "name": "list_product_categories",
+     "read_only": true
+    },
+    {
+     "name": "create_product_category",
+     "read_only": false
+    },
+    {
+     "name": "list_product_tags",
+     "read_only": true
+    },
+    {
+     "name": "list_product_attributes",
+     "read_only": true
+    },
+    {
+     "name": "list_product_reviews",
+     "read_only": true
+    },
+    {
+     "name": "list_orders",
+     "read_only": true
+    },
+    {
+     "name": "get_order",
+     "read_only": true
+    },
+    {
+     "name": "create_order",
+     "read_only": false
+    },
+    {
+     "name": "update_order",
+     "read_only": false
+    },
+    {
+     "name": "delete_order",
+     "read_only": false
+    },
+    {
+     "name": "list_order_notes",
+     "read_only": true
+    },
+    {
+     "name": "create_order_note",
+     "read_only": false
+    },
+    {
+     "name": "list_order_refunds",
+     "read_only": true
+    },
+    {
+     "name": "get_order_refund",
+     "read_only": true
+    },
+    {
+     "name": "create_order_refund",
+     "read_only": false
+    },
+    {
+     "name": "list_customers",
+     "read_only": true
+    },
+    {
+     "name": "get_customer",
+     "read_only": true
+    },
+    {
+     "name": "create_customer",
+     "read_only": false
+    },
+    {
+     "name": "update_customer",
+     "read_only": false
+    },
+    {
+     "name": "delete_customer",
+     "read_only": false
+    },
+    {
+     "name": "list_coupons",
+     "read_only": true
+    },
+    {
+     "name": "get_coupon",
+     "read_only": true
+    },
+    {
+     "name": "create_coupon",
+     "read_only": false
+    },
+    {
+     "name": "update_coupon",
+     "read_only": false
+    },
+    {
+     "name": "delete_coupon",
+     "read_only": false
+    },
+    {
+     "name": "get_sales_report",
+     "read_only": true
+    },
+    {
+     "name": "get_top_sellers_report",
+     "read_only": true
+    },
+    {
+     "name": "get_report_totals",
+     "read_only": true
+    },
+    {
+     "name": "get_system_status",
+     "read_only": true
+    }
+   ]
+  },
+  "WordPress": {
+   "display_name": "WordPress",
+   "proxy_dir": "wordpress",
+   "category": "cms",
+   "tools": [
+    {
+     "name": "list_posts",
+     "read_only": true
+    },
+    {
+     "name": "get_post",
+     "read_only": true
+    },
+    {
+     "name": "create_post",
+     "read_only": false
+    },
+    {
+     "name": "update_post",
+     "read_only": false
+    },
+    {
+     "name": "delete_post",
+     "read_only": false
+    },
+    {
+     "name": "list_post_types",
+     "read_only": true
+    },
+    {
+     "name": "list_writable_meta",
+     "read_only": true
+    },
+    {
+     "name": "list_pages",
+     "read_only": true
+    },
+    {
+     "name": "get_page",
+     "read_only": true
+    },
+    {
+     "name": "create_page",
+     "read_only": false
+    },
+    {
+     "name": "update_page",
+     "read_only": false
+    },
+    {
+     "name": "delete_page",
+     "read_only": false
+    },
+    {
+     "name": "list_media",
+     "read_only": true
+    },
+    {
+     "name": "get_media",
+     "read_only": true
+    },
+    {
+     "name": "list_categories",
+     "read_only": true
+    },
+    {
+     "name": "create_category",
+     "read_only": false
+    },
+    {
+     "name": "list_tags",
+     "read_only": true
+    },
+    {
+     "name": "create_tag",
+     "read_only": false
+    },
+    {
+     "name": "list_comments",
+     "read_only": true
+    },
+    {
+     "name": "get_comment",
+     "read_only": true
+    },
+    {
+     "name": "list_users",
+     "read_only": true
+    },
+    {
+     "name": "get_user",
+     "read_only": true
+    },
+    {
+     "name": "update_user",
+     "read_only": false
+    },
+    {
+     "name": "create_user",
+     "read_only": false
+    }
+   ]
+  },
+  "X_Ads": {
+   "display_name": "X Ads",
+   "proxy_dir": "x_ads",
+   "category": "paid_social",
+   "tools": [
+    {
+     "name": "tool_list_ad_accounts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_funding_instruments",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_web_event_tags",
+     "read_only": true
+    },
+    {
+     "name": "tool_upload_media",
+     "read_only": false
+    },
+    {
+     "name": "tool_search_locations",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_conversations",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_events",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_campaigns",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_line_items",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_promoted_tweets",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_analytics",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_tailored_audiences",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_targeting_criteria",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_campaign_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_campaign",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_line_item",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_line_item",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_line_item_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_line_item",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_promoted_tweet",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_promoted_tweet_status",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_promoted_tweet",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_tailored_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_tailored_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_tailored_audience",
+     "read_only": false
+    },
+    {
+     "name": "tool_add_targeting_criteria",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_targeting_criteria",
+     "read_only": false
+    },
+    {
+     "name": "tool_get_tweets",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_cards",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_card",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_tweet",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_tweet",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_card",
+     "read_only": false
+    },
+    {
+     "name": "tool_update_card",
+     "read_only": false
+    }
+   ]
+  },
+  "X_Organic": {
+   "display_name": "X Organic",
+   "proxy_dir": "x_organic",
+   "category": "organic_social",
+   "tools": [
+    {
+     "name": "tool_get_me",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_user",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_user_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_mentions",
+     "read_only": true
+    },
+    {
+     "name": "tool_search_recent_posts",
+     "read_only": true
+    },
+    {
+     "name": "tool_get_post_replies",
+     "read_only": true
+    },
+    {
+     "name": "tool_create_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_create_thread",
+     "read_only": false
+    },
+    {
+     "name": "tool_delete_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_upload_media",
+     "read_only": false
+    },
+    {
+     "name": "tool_like_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_unlike_post",
+     "read_only": false
+    },
+    {
+     "name": "tool_repost",
+     "read_only": false
+    },
+    {
+     "name": "tool_undo_repost",
+     "read_only": false
+    }
+   ]
+  },
+  "YouTube": {
+   "display_name": "YouTube",
+   "proxy_dir": "youtube",
+   "category": "organic_social",
+   "tools": [
+    {
+     "name": "get_channel",
+     "read_only": true
+    },
+    {
+     "name": "list_channel_videos",
+     "read_only": true
+    },
+    {
+     "name": "get_videos",
+     "read_only": true
+    },
+    {
+     "name": "get_channel_performance",
+     "read_only": true
+    },
+    {
+     "name": "search_videos",
+     "read_only": true
+    },
+    {
+     "name": "list_playlists",
+     "read_only": true
+    },
+    {
+     "name": "list_playlist_items",
+     "read_only": true
+    },
+    {
+     "name": "list_comment_threads",
+     "read_only": true
+    }
+   ]
+  },
+  "HubSpot": {
+   "display_name": "HubSpot",
+   "proxy_dir": null,
+   "category": "crm",
+   "note": "HubSpot's own remote MCP (mcp.hubspot.com); Cogny only handles OAuth. Read-only CRM scopes.",
+   "tools": [
+    {
+     "name": "get_user_details",
+     "read_only": true
+    },
+    {
+     "name": "search_crm_objects",
+     "read_only": true
+    },
+    {
+     "name": "get_crm_objects",
+     "read_only": true
+    },
+    {
+     "name": "search_properties",
+     "read_only": true
+    },
+    {
+     "name": "get_properties",
+     "read_only": true
+    },
+    {
+     "name": "search_owners",
+     "read_only": true
+    },
+    {
+     "name": "query_crm_data",
+     "read_only": true
+    },
+    {
+     "name": "discover_hubspot_schema",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_attribution_reports",
+     "read_only": true
+    }
+   ]
+  },
+  "Stripe": {
+   "display_name": "Stripe",
+   "proxy_dir": null,
+   "category": "billing",
+   "note": "Stripe's own MCP. Reads go through stripe_api_search -> stripe_api_details -> stripe_api_read.",
+   "tools": [
+    {
+     "name": "get_stripe_account_info",
+     "read_only": true
+    },
+    {
+     "name": "search_stripe_documentation",
+     "read_only": true
+    },
+    {
+     "name": "stripe_api_search",
+     "read_only": true
+    },
+    {
+     "name": "stripe_api_details",
+     "read_only": true
+    },
+    {
+     "name": "stripe_api_read",
+     "read_only": true
+    },
+    {
+     "name": "stripe_api_write",
+     "read_only": false
+    },
+    {
+     "name": "stripe_implementation_planner",
+     "read_only": true
+    },
+    {
+     "name": "send_stripe_mcp_feedback",
+     "read_only": false
+    }
+   ]
+  },
+  "agents-launch-lovable-app": {
+   "display_name": "agents-launch-lovable-app",
+   "proxy_dir": null,
+   "category": "directory",
+   "note": "agentlaunch directory (Product Hunt-style listing for AI agents), routed through Cogny.",
+   "tools": [
+    {
+     "name": "list_agents",
+     "read_only": true
+    },
+    {
+     "name": "get_agent",
+     "read_only": true
+    },
+    {
+     "name": "submit_agent",
+     "read_only": false
+    }
+   ]
+  },
+  "app-fibbler-co": {
+   "display_name": "app-fibbler-co",
+   "proxy_dir": null,
+   "category": "attribution",
+   "note": "Fibbler B2B ad attribution (LinkedIn/Google/Meta -> CRM deals). Pass crm=hubspot|salesforce|attio|pipedrive.",
+   "tools": [
+    {
+     "name": "compare_campaign_periods",
+     "read_only": true
+    },
+    {
+     "name": "get_account_overview",
+     "read_only": true
+    },
+    {
+     "name": "get_audience_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_audience_titles",
+     "read_only": true
+    },
+    {
+     "name": "get_campaign_performance",
+     "read_only": true
+    },
+    {
+     "name": "get_company_engagement",
+     "read_only": true
+    },
+    {
+     "name": "get_correlation_evidence",
+     "read_only": true
+    },
+    {
+     "name": "get_cross_channel_performance",
+     "read_only": true
+    },
+    {
+     "name": "get_customer_journey",
+     "read_only": true
+    },
+    {
+     "name": "get_deal_attribution_summary",
+     "read_only": true
+    },
+    {
+     "name": "get_deal_campaign_breakdown",
+     "read_only": true
+    },
+    {
+     "name": "get_google_ads_audience_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_google_ads_campaign_analytics",
+     "read_only": true
+    },
+    {
+     "name": "get_google_ads_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_influenced_deals",
+     "read_only": true
+    },
+    {
+     "name": "get_journey_benchmarks",
+     "read_only": true
+    },
+    {
+     "name": "get_meta_ads_audience_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_meta_ads_campaign_analytics",
+     "read_only": true
+    },
+    {
+     "name": "get_meta_ads_insights",
+     "read_only": true
+    },
+    {
+     "name": "get_trend_data",
+     "read_only": true
+    },
+    {
+     "name": "get_warm_accounts",
+     "read_only": true
+    }
+   ]
+  }
+ }
+}

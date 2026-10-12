@@ -1,7 +1,7 @@
 ---
 name: submit-to-agentlaunch
 description: Submit an AI agent to the agentlaunch directory and upvote agents via a public no-auth REST API
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -19,6 +19,17 @@ Base URL: `https://agents-launch.lovable.app/api/public/v1`
 OpenAPI 3.1 spec: `https://agents-launch.lovable.app/api/openapi.json`
 Enums + field limits: `GET /meta`
 
+## Works with
+
+| Job | Primary | Also answers it |
+|-----|---------|-----------------|
+| Read the directory, check if already listed | Public REST API (curl/WebFetch, no account) | Cogny's built-in **Agents Launch** integration: `list_agents`, `get_agent` |
+| Submit an agent | Public REST API `POST /agents` | Agents Launch `submit_agent` (an approval tool in Cogny: it asks first) |
+| Upvote | Public REST API only | — |
+
+The REST API is the default: it needs nothing connected and returns the `400`/`409` details the self-correction loop below relies on. Use the Cogny tools only when the user works through Cogny and has Agents Launch enabled (`mcp__cogny__list_integrations`). In Claude Code they appear as `mcp__cogny__mcp__agents-launch-lovable-app__list_agents`, `…__get_agent` and `…__submit_agent`.
+They are a vendor MCP that isn't in `docs/mcp-catalog.json`, so read each tool's schema before calling and pass the same fields as the REST body. Either way, show the user the final JSON and get a yes before submitting: the listing and `submitter_name` are public.
+
 ## Before you submit — pull the rules
 
 Fetch `/meta` once and use the returned values. Do not hardcode the enum lists; they change.
@@ -28,6 +39,14 @@ curl https://agents-launch.lovable.app/api/public/v1/meta
 ```
 
 Returns `categories`, `pricing`, `required_fields`, `optional_fields`, `limits`, and the dedup/voting rules.
+
+## Check whether it's already listed
+
+There is no search parameter (`search`/`q` are ignored) and `limit` caps at 100, so you can't page the whole directory. Instead:
+
+1. **Guess the slug** (the name lowercased, spaces → hyphens, punctuation dropped) and fetch it directly: `curl -s -o /dev/null -w "%{http_code}\n" https://agents-launch.lovable.app/api/public/v1/agents/<expected-slug>`. `200` = listed (check its `website_url` matches); `404` = not under that slug.
+2. **Scan the likely category:** `GET /agents?category=<category>&period=all&limit=100` and look for the same name or `website_url` host.
+3. **Rely on the `409`.** Dedup is on the normalized `website_url`, so if both checks miss, the POST itself is the authoritative check: a `409` returns the existing agent. Don't treat a clean scan as proof it isn't listed.
 
 ## Submit an agent
 
@@ -57,7 +76,11 @@ curl -X POST https://agents-launch.lovable.app/api/public/v1/agents \
 
 - **`category` and `pricing` are enum-locked.** Picking a value not in `/meta` returns `400`. Fetch `/meta` first.
 - **`instructions_url` should point at a machine-readable file** — SKILL.md, AUTH.md, llms.txt, openapi.json, or `.well-known/ai-plugin.json`. This is how other agents consume your service unattended.
-- **`logo_url` must be a direct image** (`.png`, `.jpg`, `.jpeg`, `.webp`, `.svg`, `.gif`, `.avif`). **Favicons are rejected** — anything with `favicon` in the path returns `400`. Use a real square logo (≥256×256 recommended).
+- **`logo_url` must be a direct image** (`.png`, `.jpg`, `.jpeg`, `.webp`, `.svg`, `.gif`, `.avif`). **Favicons are rejected** — anything with `favicon` in the path returns `400`. Use a real square logo (≥256×256 recommended). The site's logo path is often a guess that 404s, so verify it before submitting:
+  ```bash
+  curl -sIL -o /dev/null -w "%{http_code} %{content_type} %{url_effective}\n" "<logo_url>"
+  ```
+  Use it only if the result is `200` with an `image/*` content type and the final URL still ends in an image extension. Good candidates: `og:image`, `apple-touch-icon` (180×180), the header `<img>`/SVG logo (find them with `curl -sL <site> | grep -oiE '<(meta[^>]+og:image|link[^>]+apple-touch-icon|img[^>]+logo)[^>]*>'`). If none passes, omit `logo_url` (it's optional) rather than sending a broken link.
 - **`website_url` is deduped.** Normalized match (lowercase host, strip `www.`, trailing slash, query, hash). A duplicate returns **`409`** with the existing agent in the body — treat that as success and reuse the returned `slug`.
 - **Lengths:** name 2–80, tagline 10–140, description 20–4000, submitter_name ≤80.
 
@@ -89,7 +112,7 @@ curl "https://agents-launch.lovable.app/api/public/v1/agents?category=research&l
 curl https://agents-launch.lovable.app/api/public/v1/agents/researchbot
 ```
 
-Query params: `period` (`today`|`week`|`all`), `category` (enum), `limit` (1–100, default 50). Sorted by `vote_count` desc, then newest.
+Query params: `period` (`today`|`week`|`all`), `category` (enum), `limit` (1–100, default 50). Sorted by `vote_count` desc, then newest. No text search; see "Check whether it's already listed".
 
 ## Upvote an agent
 

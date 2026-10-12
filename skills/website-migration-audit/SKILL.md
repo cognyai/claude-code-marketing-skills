@@ -1,7 +1,7 @@
 ---
 name: website-migration-audit
 description: Compare a production site against a staging/redesign version — SEO parity, content integrity, missing pages, and launch readiness
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,22 +13,52 @@ allowed-tools:
   - Read
   - Write
   # BigQuery for Search Console data (when connected via Cogny MCP)
+  - mcp__cogny__refresh_mcp_discovery
   - mcp__cogny__list_datasets
   - mcp__cogny__list_tables
   - mcp__cogny__inspect_schema
   - mcp__cogny__execute_bigquery_sql
   # Search Console tools (when connected via Cogny MCP)
-  - mcp__cogny__search_console__tool_list_properties
-  - mcp__cogny__search_console__tool_get_search_analytics
-  - mcp__cogny__search_console__tool_get_sitemaps
-  - mcp__cogny__search_console__tool_inspect_url
+  - mcp__cogny__mcp__Google_Search_Console__tool_list_properties
+  - mcp__cogny__mcp__Google_Search_Console__tool_get_search_analytics
+  - mcp__cogny__mcp__Google_Search_Console__tool_get_sitemaps
+  - mcp__cogny__mcp__Google_Search_Console__tool_inspect_url
   # Bing Webmaster read-only tools (when connected via Cogny MCP)
-  - mcp__cogny__bing_webmaster__tool_get_sites
-  - mcp__cogny__bing_webmaster__tool_get_traffic_stats
-  - mcp__cogny__bing_webmaster__tool_get_crawl_stats
-  - mcp__cogny__bing_webmaster__tool_get_crawl_issues
-  - mcp__cogny__bing_webmaster__tool_get_url_info
-  - mcp__cogny__bing_webmaster__tool_get_page_stats
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_sites
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_traffic_stats
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_crawl_stats
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_crawl_issues
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_url_info
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_page_stats
+  - mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_url_links
+  # Provider discovery
+  - mcp__cogny__list_integrations
+  # Pages with backlinks (read-only)
+  - mcp__cogny__mcp__Ahrefs__top_pages
+  - mcp__cogny__mcp__Ahrefs__backlinks
+  - mcp__cogny__mcp__Semrush__backlinks
+  # CMS page inventories (read-only)
+  - mcp__cogny__mcp__WordPress__list_pages
+  - mcp__cogny__mcp__WordPress__list_posts
+  - mcp__cogny__mcp__Webflow__list_sites
+  - mcp__cogny__mcp__Webflow__list_pages
+  - mcp__cogny__mcp__Webflow__list_collections
+  - mcp__cogny__mcp__Webflow__list_items
+  - mcp__cogny__mcp__Webflow__list_redirects
+  - mcp__cogny__mcp__Ghost__list_pages
+  - mcp__cogny__mcp__Ghost__list_posts
+  - mcp__cogny__mcp__Framer__list_collections
+  - mcp__cogny__mcp__Framer__get_collection_items
+  - mcp__cogny__mcp__Framer__list_redirects
+  - mcp__cogny__mcp__Sanity__tool_list_documents
+  - mcp__cogny__mcp__Sanity__tool_query_groq
+  - mcp__cogny__mcp__Contentful__contentful_list_content_types
+  - mcp__cogny__mcp__Contentful__contentful_list_entries
+  - mcp__cogny__mcp__Shopify__tool_list_pages
+  - mcp__cogny__mcp__Shopify__tool_list_products
+  - mcp__cogny__mcp__Shopify__tool_list_collections
+  - mcp__cogny__mcp__Shopify__tool_list_articles
+  - mcp__cogny__mcp__Shopify__tool_list_redirects
 ---
 
 # Website Migration Audit
@@ -50,13 +80,30 @@ You are a website migration QA specialist. Your job is to protect the client's e
 
 When both URLs are provided, run the full audit below. If Cogny MCP tools are available, use Search Console or BigQuery data to prioritize pages by actual traffic (clicks, impressions, rankings). Without MCP, fall back to sitemap crawling and public data.
 
+## Works with
+
+Runs with zero accounts (sitemap + curl). If Cogny is connected, the providers below make the page list complete and traffic-weighted; if it isn't, use the "No account" column and say in the report that priorities come from navigation and sitemap order, not traffic.
+
+| Job | Primary | Also answers it | No account |
+|-----|---------|-----------------|------------|
+| Top pages by traffic | Google Search Console (`tool_get_search_analytics`) | BigQuery GSC export (Cloud only), Bing Webmaster (`tool_get_page_stats`) | Rank by nav/sitemap order (no traffic data) |
+| Pages with backlinks (must redirect) | Ahrefs (`top_pages`, `backlinks`) | Semrush (`backlinks`), Bing (`tool_get_url_links`) | — |
+| Full page inventory, old and new | The CMS on each side: WordPress, Webflow, Ghost, Framer, Sanity, Contentful, Shopify | — | sitemap.xml |
+| Existing redirects | Webflow, Framer, Shopify (`list_redirects`) | — | Fetch old URLs and follow 301s |
+
+If Cogny is connected, call `mcp__cogny__list_integrations` first and flag unhealthy integrations. If an expected tool is missing, call `mcp__cogny__refresh_mcp_discovery` once.
+
 ---
 
 ## Steps
 
 ### 1. Identify top SEO pages on the production site
 
-**With Cogny MCP (preferred):** Query Search Console or BigQuery for the top 25 pages by clicks over the last 3 months. Record clicks, impressions, CTR, and average position for each.
+**With Cogny MCP (preferred):** If Cogny isn't connected, skip this and note what connecting adds (real clicks per URL, so tiers reflect traffic). Otherwise get the top 25 pages by clicks over the last 3 months. Record clicks, impressions, CTR, and average position for each.
+
+- **Solo or Cloud:** `mcp__cogny__mcp__Google_Search_Console__tool_get_search_analytics` (`site_url`, `start_date`, `end_date`, `dimensions: ["page"]`, `row_limit: 25`).
+- **Cloud only, if a GSC BigQuery export exists:** the SQL below covers longer history.
+- **Bing too:** `mcp__cogny__mcp__Bing_Webmaster_Tools__tool_get_page_stats` (`site_url`). Add Bing-only pages to the list; show Bing clicks in their own column.
 
 ```sql
 -- Example: BigQuery Search Console export
@@ -74,7 +121,33 @@ ORDER BY total_clicks DESC
 LIMIT 25
 ```
 
-**Without MCP:** Fetch `/sitemap.xml` from the production site and extract all URLs. Use WebSearch `site:example.com` to estimate which pages have the most visibility.
+**Without MCP:** Fetch `/sitemap.xml` (and any sitemap index children) from the production site with `curl -sL` and extract all URLs. Without traffic data, rank pages by prominence instead:
+1. Homepage
+2. Top-navigation links, in menu order (curl the homepage and extract `<nav>`/header `<a href>`s)
+3. Footer links that aren't legal boilerplate
+4. Remaining sitemap URLs in sitemap order (many CMSs list key pages first)
+
+Label the tiers "by nav/sitemap order, not traffic" in the report. WebSearch ignores `site:`, so don't use it to estimate visibility.
+
+**Backlinked pages (enhanced when connected):** If Cogny isn't connected, skip this and note what connecting adds (URLs with external links that must keep a 301). A page with few clicks but many referring domains still needs a 301. Pull `mcp__cogny__mcp__Ahrefs__top_pages` (`target`, `country`) and `mcp__cogny__mcp__Ahrefs__backlinks` (`target`, `limit: 100`) or `mcp__cogny__mcp__Semrush__backlinks` (`target`). Raise any URL with external links to at least the **High** tier.
+
+### 1b. Inventory pages from the CMS (enhanced when connected)
+
+If Cogny isn't connected, skip this and note what connecting adds (drafts, unlisted pages and existing redirects that a sitemap misses).
+
+Sitemaps miss drafts, unlisted pages and CMS collection items. If the old or new platform is connected, list everything from the source and diff the two inventories by slug/path:
+
+| CMS | Pages | Posts / collection items | Redirects |
+|-----|-------|--------------------------|-----------|
+| WordPress | `WordPress__list_pages` (`per_page: 100`, `page`) | `WordPress__list_posts` (`per_page: 100`, `page`) | — (plugin-managed; fetch old URLs) |
+| Webflow | `Webflow__list_sites` → `Webflow__list_pages` (`site_id`) | `Webflow__list_collections` → `Webflow__list_items` (`collection_id`) | `Webflow__list_redirects` (`site_id`) |
+| Ghost | `Ghost__list_pages` | `Ghost__list_posts` (`limit`, `page`) | — |
+| Framer | — | `Framer__list_collections` → `Framer__get_collection_items` (`collection_id`) | `Framer__list_redirects` |
+| Sanity | — | `Sanity__tool_list_documents` (`document_type`) or `Sanity__tool_query_groq` (`query`) | — |
+| Contentful | — | `Contentful__contentful_list_content_types` → `Contentful__contentful_list_entries` (`content_type`) | — |
+| Shopify | `Shopify__tool_list_pages` | `Shopify__tool_list_products`, `tool_list_collections`, `tool_list_articles` (`first: 50`, `after`) | `Shopify__tool_list_redirects` |
+
+Prefix every name above with `mcp__cogny__mcp__`. <!-- check-tool-names: ignore --> Paginate until empty. Every production path that is missing on the new side and has no redirect goes into step 2 as a candidate 404. Creating redirects (`Webflow__create_redirect`, `Shopify__tool_create_redirect`, `Framer__add_redirects`) is a write: list them in the report and ask first.
 
 Classify pages into priority tiers:
 - **Critical** (top 5 by clicks) — any issue is a launch blocker
@@ -83,6 +156,16 @@ Classify pages into priority tiers:
 - **Standard** (all remaining) — verify they exist, spot-check content
 
 ### 2. URL parity check
+
+**First, confirm staging is a separate site.** Many staging hosts just 301 to production, which makes every check "pass" against production itself:
+
+```bash
+for u in "https://<staging>/" "https://<staging>/<a-deep-path>/"; do
+  curl -sL -o /dev/null -w "%{http_code} %{url_effective} (%{num_redirects} redirects)\n" "$u"
+done
+```
+
+If the final URL (`url_effective`) lands on the production host, **stop the parity checks** and report: "Staging redirects to production; nothing to compare. Need a reachable staging URL (or basic-auth credentials / an IP allowlist)." Also stop if staging returns 401/403 to every request, and ask for access. Compare final URLs, not just status codes, for every pair below.
 
 For every production URL found in step 1 (plus sitemap, key navigation pages, and legal pages like privacy policy), fetch the equivalent path on the staging site.
 
@@ -116,7 +199,7 @@ Also check:
 
 ### 3. SEO element comparison
 
-For all Critical and High tier pages, fetch both production and staging versions and compare:
+For all Critical and High tier pages, fetch both production and staging versions with Bash curl (WebFetch summarises the page and can't see `<head>`, so it misses titles, canonicals and meta robots) and compare:
 
 **Title tags:**
 - Must match exactly (or be intentionally improved)
@@ -221,7 +304,9 @@ For all Critical and High tier pages, compare:
 - `<html lang="...">` attribute matches production
 - Character encoding correct (Swedish characters, accents, etc.)
 
-### 7. Functional testing
+### 7. Functional testing (manual, browser only)
+
+These need a real browser with JavaScript and interaction; curl and WebFetch can't submit forms or render a consent banner. List them as a checklist for the user (or check them with a browser tool if one is available) and mark each "not tested" in the report rather than passing it:
 
 - [ ] Contact form submits successfully
 - [ ] Cookie consent banner appears and functions
@@ -285,7 +370,7 @@ Before switching DNS / going live:
 - [ ] Remove noindex tags from staging
 - [ ] Update canonical URLs to production domain
 - [ ] Verify sitemap references production URLs
-- [ ] Submit updated sitemap to Google Search Console
+- [ ] Submit updated sitemap to Google Search Console (and Bing Webmaster Tools)
 - [ ] Set up 301 redirects for any changed URLs
 - [ ] Verify analytics tracking (GA4 / GTM) is installed
 - [ ] Take baseline screenshots of top pages in Google Cache
@@ -311,7 +396,13 @@ If Cogny MCP is connected, this skill automatically enhances the audit with:
 
 **Google Search Console / BigQuery:** actual traffic data to prioritize pages by real-world SEO impact — clicks, impressions, CTR, and average position.
 
-**Bing Webmaster Tools:** Bing-specific crawl issues, indexing status, and traffic data.
+**Bing Webmaster Tools:** Bing-specific crawl issues, indexing status, traffic data and inbound links per URL.
+
+**Ahrefs / Semrush:** pages with backlinks, so link equity gets a redirect even when a page has little search traffic.
+
+**CMS (WordPress, Webflow, Ghost, Framer, Sanity, Contentful, Shopify):** complete page inventories and existing redirects on both sides of the migration.
+
+Sitemap submission (`Google_Search_Console__tool_submit_sitemap`, `Bing_Webmaster_Tools__tool_submit_feed`) and redirect creation are writes. The skill drafts them and asks first.
 
 Connect your accounts via [Cogny](https://cogny.com) ($9/mo per channel), then re-run the audit for traffic-weighted prioritization.
 

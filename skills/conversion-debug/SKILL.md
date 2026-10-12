@@ -1,7 +1,7 @@
 ---
 name: conversion-debug
 description: Conversion Tracking Debugger — diagnose discrepancies across GTM, GA4, Google Ads & Meta Pixel with live API access, BigQuery validation queries, and troubleshooting flowcharts
-version: "1.0.0"
+version: "1.1.2"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,22 +13,61 @@ allowed-tools:
   - Read
   - Write
   # GTM tools
-  - mcp__cogny__google_tag_manager__tool_list_tags
-  - mcp__cogny__google_tag_manager__tool_list_triggers
-  - mcp__cogny__google_tag_manager__tool_get_tag
-  - mcp__cogny__google_tag_manager__tool_search_tags
-  - mcp__cogny__google_tag_manager__tool_get_workspace_status
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_accounts
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_containers
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_workspaces
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_tags
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_triggers
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_tag
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_search_tags
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_workspace_status
   # GA4 tools
-  - mcp__cogny__google_analytics_4__tool_list_conversion_events
-  - mcp__cogny__google_analytics_4__tool_run_report
-  - mcp__cogny__google_analytics_4__tool_run_realtime_report
-  - mcp__cogny__google_analytics_4__tool_list_data_streams
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_google_ads_links
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_conversion_events
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_realtime_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_data_streams
   # Google Ads tools
-  - mcp__cogny__google_ads__tool_execute_gaql
-  - mcp__cogny__google_ads__tool_get_gaql_doc
+  - mcp__cogny__mcp__Google_Ads__tool_execute_gaql
+  - mcp__cogny__mcp__Google_Ads__tool_get_gaql_doc
   # Meta tools
-  - mcp__cogny__meta_ads__tool_get_pixels
-  - mcp__cogny__meta_ads__tool_get_insights
+  - mcp__cogny__mcp__Meta_Ads__tool_get_pixels
+  - mcp__cogny__mcp__Meta_Ads__tool_get_insights
+  - mcp__cogny__mcp__Meta_Ads__tool_list_ad_accounts
+  # Other ad platforms (when connected)
+  - mcp__cogny__mcp__Google_Ads__tool_list_accessible_accounts
+  - mcp__cogny__mcp__Bing_Ads__tool_list_accounts
+  - mcp__cogny__mcp__Bing_Ads__tool_get_report
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_conversions
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_analytics
+  - mcp__cogny__mcp__TikTok_Ads__tool_list_advertisers
+  - mcp__cogny__mcp__TikTok_Ads__tool_get_pixels
+  - mcp__cogny__mcp__TikTok_Ads__tool_get_insights
+  - mcp__cogny__mcp__Reddit_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__Reddit_Ads__tool_get_conversion_events
+  - mcp__cogny__mcp__Reddit_Ads__tool_get_reporting
+  - mcp__cogny__mcp__Snapchat_Ads__tool_list_organizations
+  - mcp__cogny__mcp__Snapchat_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__Snapchat_Ads__tool_list_pixels
+  - mcp__cogny__mcp__Snapchat_Ads__tool_get_stats
+  - mcp__cogny__mcp__X_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__X_Ads__tool_get_web_event_tags
+  - mcp__cogny__mcp__X_Ads__tool_get_campaigns
+  - mcp__cogny__mcp__X_Ads__tool_get_analytics
+  # Ground truth and site health (when connected)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__Shopify__tool_list_orders
+  - mcp__cogny__mcp__WooCommerce__list_orders
+  - mcp__cogny__mcp__WooCommerce__get_sales_report
+  - mcp__cogny__mcp__Microsoft_Clarity__get_live_insights
+  - mcp__cogny__mcp__PostHog__list_projects
+  - mcp__cogny__mcp__PostHog__list_insights
+  - mcp__cogny__mcp__PostHog__get_insight
+  - mcp__cogny__mcp__Mixpanel__run_segmentation
+  - mcp__cogny__mcp__Stripe__stripe_api_read
 ---
 
 # Conversion Tracking Debugger
@@ -57,13 +96,61 @@ When the user asks a question, find the relevant section below and provide preci
 
 If the user provides a specific topic as an argument, focus on that area. Otherwise, ask what platform or issue they need help with.
 
+## Step 0: Cogny check
+
+If no `mcp__cogny__*` tools exist (no `list_integrations`, no `cogny_status`), print this once,
+then answer from the reference below:
+
+```
+Conversion Debug can read your live tracking setup through Cogny's MCP gateway.
+
+1. Sign up at https://cogny.com and connect Google Tag Manager, Google Analytics 4, Google Ads,
+   Meta Ads and your store or Stripe (any subset works).
+2. Add Cogny to .mcp.json in your project:
+   {"mcpServers": {"cogny": {"type": "http", "url": "https://app.cogny.com/mcp"}}}
+3. Restart Claude Code; it opens a browser for the OAuth login on first use.
+
+Without Cogny you can still: use the flowcharts, browser checks (GTM Preview, DevTools,
+Events Manager Test Events) and the BigQuery validation SQL below.
+```
+
+Skip every live-data step with one line, e.g. "Reconciliation table: not connected (connecting
+adds side-by-side counts from GA4, Ads and your store)". If Cogny is connected but an
+integration isn't, say "connect <X> in Cogny"; if it's connected but fails, "reconnect <X> in Cogny".
+
+## Works with
+
+Works with zero accounts (reference, flowcharts, SQL). Each connected source adds one
+column to the reconciliation table (see "Cross-Platform Reconciliation"):
+
+| Job | Primary | Also answered by |
+|-----|---------|------------------|
+| Ground truth (real orders) | Shopify `tool_list_orders` | WooCommerce `list_orders` / `get_sales_report`; BigQuery queries below |
+| Ground truth (sign-ups, SaaS) | PostHog `list_insights` → `get_insight` | Mixpanel `run_segmentation` |
+| Ground truth (revenue, SaaS) | Stripe `stripe_api_read` (`GetInvoices`, `GetSubscriptions`) | — |
+| Site analytics count | GA4 `tool_run_report` | — |
+| Tag config | GTM `tool_list_tags`, `tool_get_tag` | — |
+| Ad-platform conversions | Google Ads `tool_execute_gaql` | Meta, Microsoft Ads, LinkedIn, TikTok, Reddit, Snapchat, X |
+| Pixel / tag exists and is active | Meta `tool_get_pixels` | TikTok `tool_get_pixels`, LinkedIn `tool_get_conversions`, Reddit `tool_get_conversion_events`, Snapchat `tool_list_pixels`, X `tool_get_web_event_tags` |
+| Site broke vs tracking broke | — | Microsoft Clarity `get_live_insights` |
+
 **When MCP tools are available, follow this diagnostic approach:**
 
-1. Use GTM tools to inspect tags, triggers, and workspace status
-2. Use GA4 tools to check conversion events, run reports, and verify data streams
+0. Health check: `list_integrations`, then one cheap read per integration you'll use (GTM
+   `tool_list_accounts`, `tool_list_ad_accounts`, Stripe `GetSubscriptions` with `limit: 1`).
+   `health_status` misses revoked tokens, so a 401, Forbidden or scope error is 🔴 "reconnect
+   <integration>"; don't retry it. If a tool named here is missing, call `refresh_mcp_discovery`
+   once; new tools only load after the client reconnects, so drop that column for this run and
+   mark it ⚠ "needs reconnect".
+1. Use GTM tools (`tool_list_accounts` → `tool_list_containers` → `tool_list_workspaces` for the
+   IDs) to inspect tags, triggers, and workspace status
+2. Use GA4 tools to check conversion events, run reports, and verify data streams. Find the
+   property with `tool_list_account_summaries` (each account lists its `property_summaries`; ask
+   if several match the site), and use that `property_id` for every GA4 call
 3. Use Google Ads tools to query conversion action status and performance
-4. Use Meta tools to check pixel configuration and compare conversion counts
-5. Cross-reference findings across platforms to identify the root cause
+4. Use Meta (and any other connected ad platform) to check pixel configuration and compare conversion counts
+5. Cross-reference findings against the store's orders to identify the root cause
+   (see "Cross-Platform Reconciliation")
 
 ---
 
@@ -114,6 +201,56 @@ User Action (click, form submit, purchase)
 4. **Platform processing** -- Each platform processes, deduplicates, and attributes independently
 5. **BigQuery export** -- GA4 exports raw events to BigQuery (daily ~5 AM property timezone)
 
+## Cross-Platform Reconciliation (enhanced when connected)
+
+Call `list_integrations` once. Pull the **same date range** (last 7 complete days, in each
+account's time zone) from every healthy source and build one table, one column per
+source. Never sum columns; each platform attributes its own way.
+
+| Source | Call | Conversion count |
+|--------|------|------------------|
+| Shopify (truth) | `tool_list_orders` (`query_filter: "created_at:>=YYYY-MM-DD financial_status:paid"`, page with `after`) | paid orders |
+| WooCommerce (truth) | `get_sales_report` (`date_min`, `date_max`), or `list_orders` (`after`, `before`, `status: completed`) | orders |
+| PostHog (SaaS truth) | `list_projects` → `list_insights` (`project_id`, `search: "signup"`) → `get_insight` | product sign-up event |
+| Mixpanel (SaaS truth) | `run_segmentation` (`event`: the sign-up event, `from_date`, `to_date`) | product sign-up event |
+| Stripe (SaaS revenue truth) | `stripe_api_read` `GetInvoices` (`status: "paid"`, `created` in the window, `limit: 20`; invoices are large, so page with `starting_after: <last id>` while `has_more`) and `GetSubscriptions` (`status: "all"`, `created` in the window) | paid invoices / new subscriptions, and their amount |
+| GA4 | `tool_run_report` (`dimensions: [eventName]`, `metrics: [eventCount, keyEvents, totalRevenue]`) | `purchase` / lead event |
+| Google Ads | `tool_execute_gaql`: `SELECT segments.conversion_action_name, metrics.conversions, metrics.all_conversions FROM customer WHERE segments.date DURING LAST_7_DAYS` | per action |
+| Meta | `tool_list_ad_accounts` → `tool_get_insights` (`ad_account_id`, `level: account`, `date_preset: last_7d`) | `actions` (purchase / lead) |
+| Microsoft Ads | `tool_list_accounts` → `tool_get_report` (`account_id`, `report_type: campaign`, `start_date`, `end_date`) | Conversions |
+| LinkedIn | `tool_get_analytics` (`ad_account_id`, `start_date`, `end_date`, `pivot: ACCOUNT`) | conversions |
+| TikTok | `tool_get_insights` (`advertiser_id`, `start_date`, `end_date`, `level: AUCTION_ADVERTISER`, `metrics: conversion`) | conversion |
+| Reddit | `tool_get_reporting` (`ad_account_id`, `start_date`, `end_date`, `fields`: the `KEY_CONVERSION_*` set) | key conversions |
+| Snapchat | `tool_list_organizations` → `tool_list_ad_accounts` → `tool_get_stats` (`entity_id`: ad account, `level`, `start_time`, `end_time`, `fields`) | conversion fields |
+| X | `tool_get_campaigns` → `tool_get_analytics` (`account_id`, `entity: CAMPAIGN`, `start_time`, `end_time` as ISO 8601 at midnight, `granularity: TOTAL`). First call with `metric_groups: [BILLING]` on campaigns whose flight overlaps the window (max 20 `entity_ids` per call), then pass **only the IDs that spent** (`billed_charge_local_micro` > 0) with `metric_groups: [WEB_CONVERSION]` | `conversion_purchases` / `conversion_sign_ups` |
+
+**Empty output means zero, not an error.** An empty GAQL result means no conversions recorded
+in the window; empty Meta insights means no delivery (no spend) in the window. Write 0 in the
+table. Only an actual error message (401, scope, `PROHIBITED_METRIC`, …) makes a cell "not read".
+
+Read it like this:
+- **GA4 `sign_up` far below PostHog / Mixpanel sign-ups:** the web tag misses the
+  success state (SPA route, redirect to the app domain); the product event is the truth.
+- **GA4 < store by >15%:** tag misses orders (consent, blockers, thank-you page skipped by
+  payment redirects). **GA4 > store:** duplicate firing; run "Find Duplicate Transaction IDs".
+- **Ad platform > store:** that platform counts view-through, modelled or every-conversion;
+  normal for Meta/TikTok, a bug if it exceeds total orders across all channels.
+- **X conversions > GA4's site-wide count for the same event:** X can't have caused more
+  conversions than the site recorded from every channel. Suspect view-through or
+  attribution-window inflation (X counts post-view and long post-engagement windows by
+  default); compare post-engagement only, and don't treat X's number as incremental.
+- **SaaS:** Stripe paid invoices / new subscriptions are the revenue truth; compare GA4
+  `purchase` / sign-up revenue and ad-platform conversion values against them.
+- **Google Ads = 0 but GA4 > 0** for the same event: see "Google Ads = 0 but GA4 > 0" below.
+- **Ad platform at 0 with spend:** read the pixel row: TikTok `tool_get_pixels`, LinkedIn
+  `tool_get_conversions`, Reddit `tool_get_conversion_events`, Snapchat `tool_list_pixels`,
+  X `tool_get_web_event_tags` (inactive / no recent activity = tag not firing).
+- **Everything dropped at once, store too:** the site broke, not tracking. Clarity
+  `get_live_insights` (`num_of_days: 3`, `metrics: [Script Error Count, Error Click Count,
+  Dead Click Count]`, `dimensions: [URL]`) on the checkout or form pages confirms it.
+
+Name the source on every number and use each account's currency.
+
 ## Common Discrepancies and Why
 
 ### GA4 vs Google Ads Conversion Count Differences
@@ -140,6 +277,24 @@ Typical variance: 5-20% is normal. Over 20% warrants investigation.
 3. Google Ads: tool_execute_gaql → query conversion_action metrics
 4. Compare the numbers and identify the gap source
 ```
+
+### Google Ads = 0 but GA4 > 0
+
+GA4 records the event but Google Ads shows no conversions for it. That's not attribution
+variance, it's a broken link. Check these in order and stop at the first that fails:
+
+| # | Cause | How to check (connected) | Without Cogny |
+|---|-------|--------------------------|---------------|
+| 1 | GA4 key event isn't imported into Ads, or GA4 isn't linked | GA4 `tool_list_google_ads_links` (`property_id`): empty = no link. Google Ads `tool_execute_gaql`: `SELECT conversion_action.name, conversion_action.type, conversion_action.status FROM conversion_action WHERE conversion_action.type IN ('GOOGLE_ANALYTICS_4_CUSTOM', 'GOOGLE_ANALYTICS_4_PURCHASE')`: no `ENABLED` row for the event = not imported. Also confirm the event is a key event (`tool_list_conversion_events`) | GA4 Admin → Product links → Google Ads; Ads → Goals → Conversions → Summary |
+| 2 | Auto-tagging (gclid) is off | `SELECT customer.auto_tagging_enabled FROM customer` → `false` | Ads → Admin → Account settings → Auto-tagging; click an ad and check the landing URL for `gclid=` |
+| 3 | Conversion Linker missing (GTM-tagged sites using an `AW-` tag) | GTM `tool_list_tags`: no tag with `type: gclidw`, or one that doesn't fire on All Pages | `document.cookie` has no `_gcl_aw` after an ad click |
+| 4 | Event-name case mismatch (`first_login` sent, `FirstLogin` is the key event / import) | Compare GTM tag `eventName` (or, when it is `{{Event}}`, the trigger's `customEventFilter` value) with the key-event and import names, case-sensitively; `/gtm-audit` Step 6c does this | GA4 DebugView event name vs Admin → Events |
+| 5 | The import is a Secondary action | `SELECT conversion_action.name, conversion_action.primary_for_goal, metrics.all_conversions FROM conversion_action WHERE segments.date DURING LAST_30_DAYS`: `primary_for_goal = false` with `all_conversions` > 0 counts only in "All conv.", never in Conversions | Ads → Goals → the action's "Action optimization" says Secondary |
+
+Also rule out the normal causes before calling it broken: imports take up to 24h after the GA4
+event, and Ads only counts conversions it can attribute to a Google ad click in the window (GA4
+counts every channel). GA4 > 0 from paid search sessions (`sessionGoogleAdsCampaignName`) with
+Ads at 0 rules those out.
 
 ### Meta Pixel vs GA4 Differences
 
@@ -306,13 +461,18 @@ tool_execute_gaql →
     conversion_action.status,
     conversion_action.type,
     conversion_action.tag_snippets,
-    metrics.conversions,
-    metrics.conversions_value
+    metrics.all_conversions,
+    metrics.all_conversions_value
   FROM conversion_action
   WHERE segments.date DURING LAST_7_DAYS
 
 tool_get_gaql_doc → look up conversion_action fields
 ```
+
+`metrics.conversions` / `conversions_value` are prohibited on the `conversion_action` resource
+(`PROHIBITED_METRIC`); use `all_conversions` there. For the primary-goal `conversions` count per
+action, query `FROM customer` with `segments.conversion_action_name` (as in the reconciliation
+table). An empty result means zero conversions in the window.
 
 **Google Tag Verification:**
 
@@ -347,7 +507,7 @@ fbq('track', 'Purchase', {
 ```bash
 # Server-side CAPI
 curl -X POST \
-  "https://graph.facebook.com/v18.0/PIXEL_ID/events?access_token=TOKEN" \
+  "https://graph.facebook.com/v24.0/PIXEL_ID/events?access_token=TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "data": [{
@@ -369,6 +529,9 @@ curl -X POST \
   }'
 ```
 
+Graph API versions expire about two years after release (v18 no longer works). Check the latest
+version at https://developers.facebook.com/docs/graph-api/changelog and use it.
+
 **MCP diagnostic:**
 
 ```
@@ -388,7 +551,7 @@ SELECT
   COUNT(DISTINCT user_pseudo_id) as unique_users,
   COUNT(DISTINCT
     CONCAT(user_pseudo_id, '-',
-      (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id'))
+      CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS STRING))
   ) as unique_sessions
 FROM `project.analytics_PROPERTY_ID.events_*`
 WHERE _TABLE_SUFFIX BETWEEN
@@ -615,15 +778,15 @@ gtag('consent', 'update', {
 ```sql
 SELECT
   PARSE_DATE('%Y%m%d', event_date) as date,
-  COUNTIF(user_pseudo_id IS NOT NULL) as events_with_user_id,
-  COUNTIF(user_pseudo_id IS NULL) as events_without_user_id,
-  COUNTIF(
-    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') IS NOT NULL
-  ) as events_with_session,
+  COUNT(*) as total_events,
+  COUNTIF(privacy_info.analytics_storage = 'Yes') as analytics_granted,
+  COUNTIF(privacy_info.analytics_storage = 'No') as analytics_denied,
+  COUNTIF(privacy_info.analytics_storage IS NULL) as consent_not_set,
+  COUNTIF(privacy_info.ads_storage = 'No') as ads_denied,
   ROUND(SAFE_DIVIDE(
-    COUNTIF((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') IS NULL),
+    COUNTIF(privacy_info.analytics_storage = 'No'),
     COUNT(*)
-  ) * 100, 1) as pct_likely_consent_denied
+  ) * 100, 1) as pct_analytics_denied
 FROM `project.analytics_PROPERTY_ID.events_*`
 WHERE _TABLE_SUFFIX BETWEEN
   FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
@@ -631,6 +794,10 @@ WHERE _TABLE_SUFFIX BETWEEN
 GROUP BY 1
 ORDER BY 1 DESC
 ```
+
+`privacy_info.analytics_storage` is `Yes` / `No` when Consent Mode sends a state and NULL when it
+doesn't. A large `consent_not_set` share means Consent Mode isn't wired; a missing session ID or
+`user_pseudo_id` is not a reliable consent signal.
 
 ## Enhanced Conversions
 
@@ -758,11 +925,13 @@ Difference > 20%? --NO--> Normal variance. Document baseline.
 Which platform shows MORE?
 - Google Ads > GA4: Counting "every"? View-through? Longer window? Modeled?
 - GA4 > Google Ads: All channels vs Google-only? Action set to Primary?
+  Google Ads at 0 while GA4 > 0? Not variance: run "Google Ads = 0 but GA4 > 0".
 - Meta > GA4: View-through included? iOS modeling?
 - GA4 > Meta: Ad blockers? No CAPI? Low match quality?
   |
   v
-Run BigQuery validation queries to get ground truth.
+Run BigQuery validation queries to get ground truth,
+or compare with store orders (Shopify / WooCommerce) if connected.
 ```
 
 ### Conversion Value Wrong

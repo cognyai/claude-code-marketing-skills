@@ -1,7 +1,7 @@
 ---
 name: utm-builder
 description: UTM Parameter Strategy & Builder — naming conventions, GA4 channel grouping rules, auto-tagging, common mistakes, and BigQuery validation queries
-version: "1.0.0"
+version: "1.1.3"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -12,11 +12,24 @@ allowed-tools:
   - Write
   - Bash
   # GA4 tools (when connected via Cogny MCP)
-  - mcp__cogny__google_analytics_4__tool_run_report
-  - mcp__cogny__google_analytics_4__tool_get_property
-  - mcp__cogny__google_analytics_4__tool_list_data_streams
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_get_property
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_data_streams
   # Google Ads tools
-  - mcp__cogny__google_ads__tool_execute_gaql
+  - mcp__cogny__mcp__Google_Ads__tool_execute_gaql
+  # Other sources for a live UTM audit (when connected, read-only)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__Plausible__breakdown
+  - mcp__cogny__mcp__Fathom_Analytics__list_sites
+  - mcp__cogny__mcp__Fathom_Analytics__aggregate
+  - mcp__cogny__mcp__Meta_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__Meta_Ads__tool_get_ads
+  - mcp__cogny__mcp__X_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__X_Ads__tool_get_cards
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_creatives
 ---
 
 # UTM Parameter Strategy & Builder Reference
@@ -46,6 +59,19 @@ If the user provides a specific topic as an argument, focus on that area. Otherw
 
 When connected to Cogny MCP tools, you can pull live GA4 data and Google Ads data to audit real UTM implementations.
 
+## Works with
+
+Works with zero accounts: building UTMs and the naming rules need nothing connected.
+For `/utm-builder audit`:
+
+| Job | Primary | Also answered by | No account |
+|-----|---------|------------------|------------|
+| UTMs as they arrive on the site | GA4 `tool_run_report` | Plausible `breakdown`, Fathom Analytics `aggregate` | BigQuery queries below |
+| UTMs as set in the ads | Google Ads `tool_execute_gaql` | Meta `tool_get_ads`, LinkedIn `tool_get_creatives`, X `tool_get_cards` | ask for an export |
+| Fix a Meta ad set's URL tags | — | Meta `tool_update_ad_set_url_tags` (write: not pre-approved, asks first) | — |
+
+See "Live UTM Audit" below.
+
 ---
 
 ## The Five UTM Parameters
@@ -65,6 +91,7 @@ When connected to Cogny MCP tools, you can pull live GA4 data and Google Ads dat
 utm_source=google          # Google Ads or Google organic
 utm_source=facebook        # Meta Ads (Facebook/Instagram)
 utm_source=linkedin        # LinkedIn Ads or organic
+utm_source=twitter         # X Ads or organic. GA4 still lists X as "twitter": "x" lands in Organic Search, "x.com" in Referral, "xads" in Paid Other
 utm_source=klaviyo         # Email via Klaviyo
 utm_source=tiktok          # TikTok Ads
 utm_source=partner-blog    # A specific referral partner
@@ -73,13 +100,13 @@ utm_source=partner-blog    # A specific referral partner
 **utm_medium** — The channel type. This is the most important parameter for GA4 default channel grouping. If utm_medium is wrong, traffic lands in the wrong channel.
 ```
 utm_medium=cpc             # Cost-per-click (paid search)
-utm_medium=paid-social     # Paid social ads
+utm_medium=paid-social     # Paid social ads (needs a social utm_source; see channel rules)
 utm_medium=email           # Email marketing
 utm_medium=organic-social  # Organic social posts
 utm_medium=display         # Display/banner ads
 utm_medium=affiliate       # Affiliate traffic
 utm_medium=referral        # Partner/referral traffic
-utm_medium=video           # Video ads
+utm_medium=video           # Lands in Organic Video; for paid video use utm_source=youtube + utm_medium=cpc
 ```
 
 **utm_campaign** — Campaign name with consistent structure:
@@ -104,26 +131,57 @@ utm_content=video-30s
 
 ## GA4 Default Channel Grouping Rules
 
-GA4 classifies every session into a default channel group based on `source`, `medium`, and `campaign` values. These rules determine how traffic appears in GA4 standard reports.
+GA4 classifies every session into a default channel group from its `source`, `medium` and
+`campaign`. Rules below are for manually tagged (UTM) traffic. Google's page lists the
+channels alphabetically and doesn't document an evaluation order, so read the table as
+conditions, not a ranked list; when a combination looks ambiguous, check where it actually
+lands in GA4. Source: [Google's definitions](https://support.google.com/analytics/answer/9756891).
+Google Ads auto-tagged traffic is classified by ad network / campaign type instead.
 
-| Channel | Medium Must Match |
-|---------|-------------------|
+"Paid medium" below means medium matches `^(.*cp.*|ppc|retargeting|paid.*)$`
+(so `cpc`, `cpm`, `paid-social`, `paidsocial`, `paid_social`, `ppc`, `retargeting` all count).
+**Source categories** (search, social, video, shopping sites) are Google's own lists,
+downloadable from the help page. Common entries: search `google`, `bing`, `yahoo`, `duckduckgo`,
+`baidu`, `yandex`, `ecosia`; social `facebook`, `fb`, `instagram`, `ig`, `linkedin`, `lnkd.in`,
+`twitter`, `t.co`, `reddit`, `tiktok` (and subdomains like `business-api.tiktok.com`), `pinterest`, `snapchat`; video `youtube`, `vimeo`,
+`twitch`; shopping `shopping`, `igshopping`, `google shopping`.
+
+| Channel | Rule |
+|---------|------|
 | **Direct** | source = `(direct)` AND medium is `(not set)` or `(none)` |
-| **Organic Search** | medium = `organic` |
-| **Paid Search** | medium matches `^(cpc\|ppc\|paidsearch)$` |
-| **Display** | medium matches `^(display\|cpm\|banner)$` |
-| **Paid Social** | medium matches `^(paid-social\|paidsocial\|paid_social)$` |
-| **Organic Social** | medium matches `^(social\|social-network\|social-media\|sm\|organic-social)$` |
-| **Email** | medium = `email` |
-| **Affiliates** | medium = `affiliate` |
-| **Referral** | medium = `referral` |
-| **Audio** | medium = `audio` |
-| **SMS** | medium matches `^(sms\|sms_message)$` |
-| **Video** | medium matches `^(video\|youtube)$` |
 | **Cross-network** | campaign name contains `cross-network` |
-| **Unassigned** | Does not match any rule above |
+| **Paid Shopping** | (source is a shopping site OR campaign matches `^(.*(([^a-df-z]\|^)shop\|shopping).*)$`) AND paid medium |
+| **Paid Search** | source is a **search** site AND paid medium |
+| **Paid Social** | source is a **social** site AND paid medium |
+| **Paid Video** | source is a **video** site AND paid medium |
+| **Display** | medium is `display`, `banner`, `expandable`, `interstitial` or `cpm` |
+| **Paid Other** | paid medium, but the source is in none of the lists above |
+| **Organic Shopping** | source is a shopping site OR campaign matches the shop/shopping regex |
+| **Organic Social** | source is a social site OR medium is `social`, `social-network`, `social-media`, `sm`, `social network`, `social media` |
+| **Organic Video** | source is a video site OR medium matches `^(.*video.*)$` |
+| **Organic Search** | source is a search site OR medium = `organic` |
+| **AI Assistant** | medium = `ai-assistant` (GA4 also sets it when the referrer is a known AI assistant) |
+| **Referral** | medium is `referral`, `app` or `link` |
+| **Email** | source or medium is `email`, `e-mail`, `e_mail` or `e mail` |
+| **Affiliates** | medium = `affiliate` |
+| **Audio** | medium = `audio` |
+| **SMS** | source or medium = `sms` |
+| **Mobile Push Notifications** | medium ends with `push`, or contains `mobile` or `notification`, or source = `firebase` |
+| **Unassigned** | matches none of the above |
 
-**Critical:** If `utm_medium` does not match any pattern above, traffic falls into **Unassigned**.
+**Critical:**
+- A paid medium alone isn't enough. `cpc` only becomes Paid Search with a search source and
+  Paid Social with a social source. Live proof: `utm_source=xads&utm_medium=cpc` landed in
+  **Paid Other**, because `xads` isn't on Google's social list. Use `twitter`, `facebook`,
+  `linkedin`, `tiktok`: names Google recognises. **Not `x`**: live GA4 data puts `x / organic` in
+  Organic Search and `x.com / referral` in Referral, while `twitter / cpc` and `twitter / paid` land in
+  Paid Social.
+- Payment and login referrers (`checkout.stripe.com`, OAuth providers) get classified as channels
+  (Stripe even lands in Organic Shopping). Add them to GA4's unwanted-referrals list.
+- `cpm` matches the paid-medium regex, so `facebook / cpm` is Paid Social, not Display.
+- `organic-social` is **not** an Organic Social medium; it only lands there because the source
+  is a social site. With an unknown source it's Unassigned.
+- A medium that matches no rule, with a source on no list, falls into **Unassigned**.
 
 ## GA4 Source/Medium Mapping in BigQuery
 
@@ -134,16 +192,19 @@ UTM values appear in multiple locations in the GA4 BigQuery export:
 | `utm_source` | `traffic_source.source` | User (first-touch) |
 | `utm_medium` | `traffic_source.medium` | User (first-touch) |
 | `utm_campaign` | `traffic_source.name` | User (first-touch) |
-| `utm_source` | Event param `source` on `session_start` | Session |
-| `utm_medium` | Event param `medium` on `session_start` | Session |
-| `utm_campaign` | Event param `campaign` on `session_start` | Session |
+| `utm_source` / `utm_medium` / `utm_campaign` / `utm_term` / `utm_content` / `utm_id` | `collected_traffic_source.manual_source` / `manual_medium` / `manual_campaign_name` / `manual_term` / `manual_content` / `manual_campaign_id` | Event (as collected) |
+| (attributed) | `session_traffic_source_last_click.manual_campaign.{source, medium, campaign_name}` (or `.cross_channel_campaign.*`) | Session, last click |
+
+Prefer these documented columns over the undocumented `source` / `medium` / `campaign`
+event params on `session_start`. They're the export's official home for UTMs (older
+export days may lack them; fall back to the event params there).
 
 **Session-level source/medium query:**
 ```sql
 SELECT
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') as session_source,
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') as session_medium,
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'campaign') as session_campaign,
+  collected_traffic_source.manual_source as session_source,
+  collected_traffic_source.manual_medium as session_medium,
+  collected_traffic_source.manual_campaign_name as session_campaign,
   COUNT(*) as sessions
 FROM `project.analytics_123456789.events_*`
 WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
@@ -295,6 +356,48 @@ utm_campaign=brand-search
 utm_campaign=brand-search-q1-2025
 ```
 
+## Live UTM Audit (enhanced when connected)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+Call `list_integrations` once and use whichever is healthy. `health_status` misses revoked
+tokens, so make one cheap read per integration (`tool_list_ad_accounts`, GA4 `tool_get_property`):
+a 401, Forbidden or scope error is 🔴 "reconnect <integration>", with no retry. If a tool named
+here is missing, call `refresh_mcp_discovery` once; new tools only load after the client
+reconnects, so skip that row this run and mark it ⚠ "needs reconnect". Last 30 days.
+
+**What arrives on the site**
+
+| Provider | Call |
+|----------|------|
+| GA4 | `tool_run_report` (`property_id`, `dimensions: [sessionSourceMedium, sessionCampaignName]`, `metrics: [sessions, keyEvents]`), plus one run with `dimensions: [sessionDefaultChannelGroup]` for the `Unassigned` share |
+| Plausible | `breakdown` (`site_id`, `dimension`: `visit:utm_source`, then `visit:utm_medium`, then `visit:utm_campaign`; `date_range: 30d`) |
+| Fathom Analytics | `list_sites` → `aggregate` (`entity: pageview`, `entity_id: <site id>`, `aggregates: visits`, `field_grouping: utm_campaign`, `date_from`, `date_to`) |
+
+Flag, with the session count for each:
+- Same source in several spellings (`Facebook`, `facebook`, `fb`, `facebook.com`)
+- Uppercase or spaces in any value
+- Mediums GA4 doesn't map to a channel (`paid_social`, `social-paid`), which land in `Unassigned`
+- Campaigns with no date or quarter
+- Your own domain as a source (UTMs on internal links)
+
+**What the ads send**
+
+| Platform | Call | Where the UTMs live |
+|----------|------|---------------------|
+| Google Ads | `tool_execute_gaql`: `SELECT campaign.name, campaign.tracking_url_template, campaign.final_url_suffix FROM campaign WHERE campaign.status = 'ENABLED'` | tracking template / final URL suffix (auto-tagging usually makes UTMs unnecessary) |
+| Meta | `tool_list_ad_accounts` → `tool_get_ads` (`ad_account_id`, `include_creative: true`, `limit` ≤ 20, `thumbnail_width: 0`, `thumbnail_height: 0`; page by `campaign_id` / `ad_set_id` for more) | `url_tags` and `destination_url` on each ad's creative |
+| LinkedIn | `tool_list_ad_accounts` → `tool_get_creatives` (`ad_account_id`, `status_filter: ["ACTIVE"]`) | the landing-page / click URL in each creative's `content` |
+| X | `tool_list_ad_accounts` → `tool_get_cards` (`account_id`) | the card's website URL |
+
+Ads with no UTMs on Meta, LinkedIn or X show up as `referral` in GA4, and a source GA4 doesn't
+recognise (e.g. `xads`) lands in Paid Other. Give each broken ad the corrected template from
+"UTM Templates by Channel". Fixing a Meta ad set with `tool_update_ad_set_url_tags`
+(`ad_set_id`, `url_tags`) is a write, so it's not in this skill's allowed tools: show the new
+string and ask first.
+
+Name the provider on every number; Plausible counts visitors, GA4 counts sessions.
+
 ## BigQuery Validation Queries
 
 ### All Unique Source/Medium Combinations
@@ -336,30 +439,58 @@ ORDER BY variant_count DESC
 ```
 
 ### Predict Channel Grouping Assignment
+
+Approximates Google's manual-traffic rules (see the table above). The source lists are
+abbreviated; extend the regexes from Google's downloadable source-category list for your traffic.
+
 ```sql
+WITH t AS (
+  SELECT
+    LOWER(IFNULL(traffic_source.source, '')) AS src,
+    LOWER(IFNULL(traffic_source.medium, '')) AS med,
+    LOWER(IFNULL(traffic_source.name, '')) AS camp,
+    user_pseudo_id
+  FROM `project.analytics_123456789.events_*`
+  WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
+                          AND FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
+), c AS (
+  SELECT *,
+    REGEXP_CONTAINS(med, r'^(.*cp.*|ppc|retargeting|paid.*)$') AS paid_med,
+    REGEXP_CONTAINS(src, r'^(google|bing|yahoo|duckduckgo|baidu|yandex|ecosia|naver|seznam)(\..*)?$|(^|\.)(google|bing|search\.yahoo|duckduckgo)\.') AS search_src,
+    REGEXP_CONTAINS(src, r'^(facebook|fb|m\.facebook\.com|l\.facebook\.com|instagram|ig|linkedin|lnkd\.in|twitter|t\.co|reddit|pinterest|snapchat|quora|threads)(\.com)?$')
+      OR REGEXP_CONTAINS(src, r'(^|\.)tiktok(\.com)?$') AS social_src,
+    REGEXP_CONTAINS(src, r'^(youtube|m\.youtube\.com|vimeo|twitch|dailymotion|wistia)(\.com|\.tv)?$') AS video_src,
+    REGEXP_CONTAINS(src, r'^(shopping|igshopping|google shopping|shopping\.google\.com)$')
+      OR REGEXP_CONTAINS(camp, r'^(.*(([^a-df-z]|^)shop|shopping).*)$') AS shop
+  FROM t
+)
 SELECT
-  traffic_source.source,
-  traffic_source.medium,
+  src AS source,
+  med AS medium,
   CASE
-    WHEN traffic_source.source = '(direct)' AND (traffic_source.medium IS NULL OR traffic_source.medium IN ('(not set)', '(none)')) THEN 'Direct'
-    WHEN traffic_source.medium = 'organic' THEN 'Organic Search'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(cpc|ppc|paidsearch)$') THEN 'Paid Search'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(display|cpm|banner)$') THEN 'Display'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(paid-social|paidsocial|paid_social)$') THEN 'Paid Social'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(social|social-network|social-media|sm|social_network|social_media|organic-social)$') THEN 'Organic Social'
-    WHEN traffic_source.medium = 'email' THEN 'Email'
-    WHEN traffic_source.medium = 'affiliate' THEN 'Affiliates'
-    WHEN traffic_source.medium = 'referral' THEN 'Referral'
-    WHEN traffic_source.medium = 'audio' THEN 'Audio'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(sms|sms_message)$') THEN 'SMS'
-    WHEN REGEXP_CONTAINS(traffic_source.medium, r'^(video|youtube)$') THEN 'Video'
-    WHEN REGEXP_CONTAINS(IFNULL(traffic_source.name, ''), r'cross-network') THEN 'Cross-network'
+    WHEN src = '(direct)' AND med IN ('', '(not set)', '(none)') THEN 'Direct'
+    WHEN STRPOS(camp, 'cross-network') > 0 THEN 'Cross-network'
+    WHEN shop AND paid_med THEN 'Paid Shopping'
+    WHEN search_src AND paid_med THEN 'Paid Search'
+    WHEN social_src AND paid_med THEN 'Paid Social'
+    WHEN video_src AND paid_med THEN 'Paid Video'
+    WHEN med IN ('display', 'banner', 'expandable', 'interstitial', 'cpm') THEN 'Display'
+    WHEN paid_med THEN 'Paid Other'
+    WHEN shop THEN 'Organic Shopping'
+    WHEN social_src OR med IN ('social', 'social-network', 'social-media', 'sm', 'social network', 'social media') THEN 'Organic Social'
+    WHEN video_src OR REGEXP_CONTAINS(med, r'video') THEN 'Organic Video'
+    WHEN search_src OR med = 'organic' THEN 'Organic Search'
+    WHEN med = 'ai-assistant' THEN 'AI Assistant'
+    WHEN med IN ('referral', 'app', 'link') THEN 'Referral'
+    WHEN src IN ('email', 'e-mail', 'e_mail', 'e mail') OR med IN ('email', 'e-mail', 'e_mail', 'e mail') THEN 'Email'
+    WHEN med = 'affiliate' THEN 'Affiliates'
+    WHEN med = 'audio' THEN 'Audio'
+    WHEN src = 'sms' OR med = 'sms' THEN 'SMS'
+    WHEN ENDS_WITH(med, 'push') OR STRPOS(med, 'mobile') > 0 OR STRPOS(med, 'notification') > 0 OR src = 'firebase' THEN 'Mobile Push Notifications'
     ELSE 'Unassigned'
-  END as predicted_channel_group,
-  COUNT(DISTINCT user_pseudo_id) as users
-FROM `project.analytics_123456789.events_*`
-WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
-                        AND FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
+  END AS predicted_channel_group,
+  COUNT(DISTINCT user_pseudo_id) AS users
+FROM c
 GROUP BY 1, 2, 3
 ORDER BY users DESC
 ```
@@ -369,8 +500,8 @@ ORDER BY users DESC
 SELECT
   (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') as landing_page,
   (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_referrer') as referrer,
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') as session_source,
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') as session_medium,
+  collected_traffic_source.manual_source as session_source,
+  collected_traffic_source.manual_medium as session_medium,
   COUNT(*) as sessions
 FROM `project.analytics_123456789.events_*`
 WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
@@ -392,18 +523,18 @@ ORDER BY sessions DESC
 ### Find Sessions Missing utm_medium
 ```sql
 SELECT
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') as source,
-  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'campaign') as campaign,
+  collected_traffic_source.manual_source as source,
+  collected_traffic_source.manual_campaign_name as campaign,
   COUNT(*) as sessions
 FROM `project.analytics_123456789.events_*`
 WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
                         AND FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
   AND event_name = 'session_start'
-  AND (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') IS NOT NULL
-  AND (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') != '(direct)'
+  AND collected_traffic_source.manual_source IS NOT NULL
+  AND collected_traffic_source.manual_source != '(direct)'
   AND (
-    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') IS NULL
-    OR (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') IN ('(not set)', '(none)', '')
+    collected_traffic_source.manual_medium IS NULL
+    OR collected_traffic_source.manual_medium IN ('(not set)', '(none)', '')
   )
 GROUP BY 1, 2
 ORDER BY sessions DESC
@@ -413,8 +544,12 @@ ORDER BY sessions DESC
 
 Google Sheets formula to generate UTM URLs from columns (A=URL, B=source, C=medium, D=campaign, E=term, F=content):
 ```
-=A2&"?utm_source="&B2&"&utm_medium="&C2&"&utm_campaign="&D2&IF(E2<>"","&utm_term="&E2,"")&IF(F2<>"","&utm_content="&F2,"")
+=A2&IF(ISNUMBER(FIND("?",A2)),"&","?")&"utm_source="&ENCODEURL(B2)&"&utm_medium="&ENCODEURL(C2)&"&utm_campaign="&ENCODEURL(D2)&IF(E2<>"","&utm_term="&ENCODEURL(E2),"")&IF(F2<>"","&utm_content="&ENCODEURL(F2),"")
 ```
+
+It appends with `&` when the URL already has a query string (`?`) and `?` otherwise, and
+URL-encodes each value. If a URL has a `#fragment`, strip it first or put the UTMs before the
+`#`, since anything after `#` never reaches the server or GA4.
 
 ## Resources
 

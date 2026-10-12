@@ -1,9 +1,9 @@
 ---
 name: tiktok-launch-video
 description: Produce a 9:16 TikTok-native launch video for a product, feature, or campaign using HyperFrames. Idiomatic TikTok pacing, burned-in captions, hook-in-1s structure. Optionally hand off to TikTok Ads to launch as a Spark/in-feed ad.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
-platforms: [tiktok-ads, hyperframes]
+platforms: [tiktok-ads, x-organic, hyperframes]
 user-invocable: true
 argument-hint: "<product URL or short brief>"
 allowed-tools:
@@ -14,12 +14,17 @@ allowed-tools:
   - Write
   - Edit
   # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__refresh_mcp_discovery
   - mcp__cogny__get_context_tree_overview
   - mcp__cogny__browse_context_tree
   - mcp__cogny__read_context_node
   - mcp__cogny__search_context
-  # Optional handoff to TikTok Ads when the user wants to publish as an ad
-  - mcp__cogny__tiktok_ads__*
+  # Optional handoff (read tools only; create/upload/post tools ask first)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__TikTok_Ads__tool_list_advertisers
+  - mcp__cogny__mcp__TikTok_Ads__tool_get_pixels
+  - mcp__cogny__mcp__TikTok_Ads__tool_list_identities
+  - mcp__cogny__mcp__TikTok_Ads__tool_list_authorized_posts
 ---
 
 # TikTok Launch Video
@@ -27,6 +32,16 @@ allowed-tools:
 Produce a TikTok-native launch video using [HyperFrames](https://hyperframes.heygen.com) — programmatic HTML/CSS video, deterministic, agent-friendly.
 
 This skill is opinionated: it forces the **TikTok grammar** (9:16, hook < 1s, burned-in captions, fast cuts, native text overlays) instead of porting a 16:9 landscape video to vertical.
+
+## Works with
+
+Making the video needs no accounts. Publishing is optional, and every publish call asks first.
+
+| Job | Primary | Also answers it | What differs |
+|-----|---------|-----------------|--------------|
+| Run as an in-feed ad | TikTok Ads (upload + create, all `DISABLE`) | — | Needs the MP4 at a public URL (≤ 500 MB) |
+| Boost an organic post (Spark Ad) | TikTok Ads `tool_list_authorized_posts` / `tool_authorize_spark_post` | — | Uses the creator's existing post, so it keeps its likes and comments |
+| Post organically | TikTok app (no API) | X Organic | 9:16 works on X too; confirm the text first, it posts at once |
 
 ## Usage
 
@@ -127,11 +142,11 @@ Use the CLI. Don't try to handcraft `package.json`.
 
 ```bash
 # In the user's working directory, or a videos/ subdirectory if they prefer
-npx -y hyperframes@latest init <product-slug>-tiktok --yes
+npx -y hyperframes@latest init <product-slug>-tiktok --non-interactive --resolution portrait
 cd <product-slug>-tiktok
 ```
 
-This creates `index.html`, `meta.json`, `hyperframes.json`, plus `CLAUDE.md` / `AGENTS.md` with framework rules. Read `CLAUDE.md` once — it documents the `data-*` attribute conventions and the `window.__timelines` registration this skill depends on.
+There is no `--yes` flag; `--non-interactive` disables the prompts and `--resolution portrait` sets 1080×1920. This creates `index.html`, `meta.json`, `hyperframes.json`, plus `CLAUDE.md` / `AGENTS.md` with framework rules. Read `CLAUDE.md` once — it documents the `data-*` attribute conventions and the `window.__timelines` registration this skill depends on.
 
 ### 5. Compose the video (9:16, kinetic)
 
@@ -164,6 +179,14 @@ Fix every error. Warnings are usually safe but read them.
 
 ### 7. Render
 
+Check dependencies first:
+
+```bash
+npx hyperframes doctor
+```
+
+If it reports FFmpeg missing, stop before rendering and tell the user to install it (`brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian/Ubuntu). Meanwhile, `npx hyperframes snapshot` captures key frames as PNGs without FFmpeg, so they can review the cards.
+
 ```bash
 npx hyperframes render --output launch.mp4
 ```
@@ -186,19 +209,22 @@ If any check fails, edit and re-render. Do not ship a video that fails any of th
 
 If the user wants to run this as a paid in-feed ad (not an organic post), use the TikTok Ads MCP to set up the campaign skeleton. Don't auto-launch.
 
+The MP4 must be at a public URL. On Cloud, call `mcp__cogny__mcp__cogny-image-gen__tool_request_upload_url` and run the returned curl to get a `public_url` (asks first); otherwise ask the user for a hosted link. Then, after the user approves each write:
+
 ```
-tiktok_ads__tool_list_advertisers
-tiktok_ads__tool_get_pixels(advertiser_id)              # confirm tracking
-tiktok_ads__tool_create_campaign(...)                   # objective: TRAFFIC or VIDEO_VIEWS, status: DISABLE
-tiktok_ads__tool_create_ad_group(...)                   # placement: TIKTOK only; daily budget; status: DISABLE
-# Upload the rendered MP4 manually in TikTok Ads Manager — the MCP doesn't currently
-# upload creatives. Then:
-tiktok_ads__tool_create_ad(...)                         # status: DISABLE
+mcp__cogny__mcp__TikTok_Ads__tool_list_advertisers                      # note currency
+mcp__cogny__mcp__TikTok_Ads__tool_get_pixels(advertiser_id)              # confirm tracking
+mcp__cogny__mcp__TikTok_Ads__tool_create_campaign(advertiser_id, campaign_name, objective_type: "TRAFFIC" | "VIDEO_VIEWS", budget: <user-stated>, budget_mode: "BUDGET_MODE_DAY", operation_status: "DISABLE")
+mcp__cogny__mcp__TikTok_Ads__tool_create_ad_group(advertiser_id, campaign_id, adgroup_name, promotion_type: "WEBSITE", placement_type: "PLACEMENT_TYPE_NORMAL", placements: "PLACEMENT_TIKTOK", ...)
+mcp__cogny__mcp__TikTok_Ads__tool_upload_video(advertiser_id, file_url: "<public MP4 URL>")   # returns video_id
+mcp__cogny__mcp__TikTok_Ads__tool_create_ad(advertiser_id, adgroup_id, ad_name, ad_format: "SINGLE_VIDEO", video_id, ad_text, landing_page_url, call_to_action, identity_type, identity_id, operation_status: "DISABLE")
 ```
+
+Get `identity_id` from `tool_list_identities`. For a Spark Ad instead, pass `tiktok_item_id` (from `tool_list_authorized_posts`, or after `tool_authorize_spark_post(advertiser_id, auth_code)`) in place of `video_id`.
 
 All entities should be created `DISABLE`. Print a summary and tell the user exactly which IDs to enable in TikTok Ads Manager once they've reviewed the creative.
 
-For organic posting: just hand them `launch.mp4` and tell them to upload via the TikTok app (organic uploads are not API-supported).
+For organic posting: just hand them `launch.mp4` and tell them to upload via the TikTok app (organic uploads are not API-supported). If X Organic is connected, offer `mcp__cogny__mcp__X_Organic__tool_upload_media(file_url)` then `tool_create_post(text, media_ids)`; it posts publicly at once, so confirm the text first.
 
 ## Output format
 

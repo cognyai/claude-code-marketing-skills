@@ -68,33 +68,57 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 | Skill | Command | MCP Server | What it does |
 |-------|---------|-----------|-------------|
 | LinkedIn Ads Audit | `/linkedin-ads-audit` | LinkedIn Ads | Campaign structure, targeting, creative performance, spend efficiency |
-| SEO Monitor | `/seo-monitor` | Search Console | Track rankings, queries, indexing, core web vitals |
-| CRM ICP Analysis | `/crm-icp-analysis` | HubSpot | Build data-driven ICP from closed-won deals, contacts, and companies |
-| Sales Momentum Drivers | `/crm-sales-momentum` | HubSpot | Pipeline velocity, stage conversions, stuck deals, win/loss patterns |
-| LinkedIn Micro Campaigns | `/linkedin-micro-campaigns` | HubSpot + LinkedIn Ads | Create precision-targeted LinkedIn campaigns from ICP data |
-| Subject Line Lab | `/subject-line-lab` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Mine your last 100+ sends, find the subject-line patterns that actually lift opens on *your* list, and generate 20 tuned candidates |
-| Winback Engine | `/winback-engine` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find dormant subscribers, tier by historical value, draft personalized winback series per tier, flag suppression candidates |
-| Pre-Send QA | `/pre-send-qa` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Pre-flight QA: merge tag fallbacks, broken links, spam triggers, CAN-SPAM compliance, mobile rendering |
-| Email Report | `/email-report` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Auto-write the weekly/monthly email performance report in 3 formats — Slack, CEO email, board deck section |
-| Revenue Audit | `/revenue-audit` | Klaviyo / Mailchimp / Rule / Get a Newsletter | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
-| Drop-off Rescue | `/drop-off-rescue` | Klaviyo / Mailchimp / Rule / Get a Newsletter | Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft re-engagement emails, schedule sends — reruns weekly without double-sending |
-| Community Pulse | `/community-pulse` | Discord | Weekly digest — new joins, hot/dead channels, top contributors, lurker→active conversions, unanswered questions, 3–6 actions you can ship in 15 min |
+| SEO Monitor | `/seo-monitor` | Search Console / Bing Webmaster | Track rankings, queries, indexing, core web vitals |
+| CRM ICP Analysis | `/crm-icp-analysis` | HubSpot / Pipedrive / Upsales | Build data-driven ICP from closed-won deals, contacts, and companies |
+| Sales Momentum Drivers | `/crm-sales-momentum` | HubSpot / Pipedrive / Upsales | Pipeline velocity, stage conversions, stuck deals, win/loss patterns |
+| LinkedIn Micro Campaigns | `/linkedin-micro-campaigns` | HubSpot / Pipedrive / Upsales + LinkedIn Ads | Create precision-targeted LinkedIn campaigns from ICP data |
+| Subject Line Lab | `/subject-line-lab` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | Mine your last 100+ sends, find the subject-line patterns that actually lift opens on *your* list, and generate 20 tuned candidates |
+| Winback Engine | `/winback-engine` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | Find dormant subscribers, tier by historical value, draft personalized winback series per tier, flag suppression candidates |
+| Pre-Send QA | `/pre-send-qa` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | Pre-flight QA: merge tag fallbacks, broken links, spam triggers, CAN-SPAM compliance, mobile rendering |
+| Email Report | `/email-report` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | Auto-write the weekly/monthly email performance report in 3 formats — Slack, CEO email, board deck section |
+| Revenue Audit | `/revenue-audit` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | "Email growth consultant in a box" — finds missing flows, dormant high-value subscribers, under-segmented blasts, ranked by estimated $ impact |
+| Drop-off Rescue | `/drop-off-rescue` | Any connected ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, SFMC, …) | Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft re-engagement emails, schedule sends — reruns weekly without double-sending |
+| Community Pulse | `/community-pulse` | Discord (+ Crisp, YouTube) | Weekly digest — new joins, hot/dead channels, top contributors, lurker→active conversions, unanswered questions, 3–6 actions you can ship in 15 min |
 | Google Ads Audit | `/google-ads-audit` | Google Ads | Account-wide audit across every campaign type — structure, budget, conversion tracking, wasted spend, ranked by estimated $ impact |
-| Google Ads Monitor | `/google-ads-monitor` | Google Ads | Weekly health check — budget pacing, spend spikes, disapproved ads, conversion-tracking breaks — week-over-week |
+| Google Ads Monitor | `/google-ads-monitor` | Google Ads (+ Microsoft, Apple Search, OpenAI Ads) | Weekly health check — budget pacing, spend spikes, disapproved ads, conversion-tracking breaks — week-over-week |
 | Performance Max Audit | `/pmax-audit` | Google Ads | Deep PMax audit — asset group strength, asset coverage, search themes, audience signals, brand exclusions |
-| Search Campaign Audit | `/search-campaign-audit` | Google Ads | Deep Search audit — quality score, match types, negative keyword gaps, search terms, ad strength |
+| Search Campaign Audit | `/search-campaign-audit` | Google Ads / Microsoft Ads | Deep Search audit — quality score, match types, negative keyword gaps, search terms, ad strength |
 | Shopping Campaign Audit | `/shopping-campaign-audit` | Google Ads | Deep Shopping / retail audit — feed coverage, listing-group granularity, wasted product spend |
 | Demand Gen Audit | `/demand-gen-audit` | Google Ads | Deep Demand Gen audit — audience strategy, creative format diversity, fatigue, CPA vs goal |
 | GA4 Audit | `/ga4-audit` | GA4 | GA4 configuration + data-quality audit — key events, custom dimensions, PII, attribution, `(not set)` traffic |
-| GA4 Monitor | `/ga4-monitor` | GA4 | Weekly GA4 check — sessions, conversions, revenue, channel mix, tracking-break alerts — week-over-week |
+| GA4 Monitor | `/ga4-monitor` | GA4 / Plausible / Fathom / Simple Analytics / Adobe | Weekly GA4 check — sessions, conversions, revenue, channel mix, tracking-break alerts — week-over-week |
 | GTM Audit | `/gtm-audit` | GTM | GTM container audit — duplicate GA4 tags, orphaned tags, trigger coverage, Consent Mode, naming hygiene |
 | GTM Monitor | `/gtm-monitor` | GTM | Weekly GTM check — diffs tags / triggers / variables vs last week, flags risky changes and unpublished drafts |
 | Cogny Agent | `/cogny` | All | Full autonomous agent — scheduled analysis, strategy, execution |
 
+## Marketing Engineer Stack — beta (requires [Cogny](https://cogny.com))
+
+One person wiring agents into a machine that runs experiments every week: researching the customer, building pages and creative, launching tests, and killing the losers. Inspired by Greg Isenberg's [Marketing Engineers playbook](https://x.com/gregisenberg/status/2108188646973313195). Every agent reads one shared **brain** in the Cogny context tree. Every campaign carries an ID from the first ad to the closed deal. Every decision lands in a review queue that takes under a minute per item. Guardrails live in the tools: ads are created paused, outreach is drafted and never sent, and scheduled agents get pause-only grants.
+
+| Skill | Command | MCP Servers | What it does |
+|-------|---------|-------------|-------------|
+| Marketing Engineer | `/marketing-engineer` | All | The hub: setup, the Monday loop, one campaign end to end, scheduling agents with tool-level guardrails |
+| Marketing Brain | `/marketing-brain` | Context tree + HubSpot + Stripe | Interview-built START-HERE, customer-fit, offers, voice, founder opinions, failed campaigns. Agents propose, humans promote |
+| Customer Language | `/customer-language` | HubSpot | The exact words customers use for their problems, from CRM calls, meetings, notes and tickets, clustered by distinct company. Weekly |
+| Campaign Ledger | `/campaign-ledger` | Google / Meta / LinkedIn / Bing / TikTok / X Ads, GA4, HubSpot, fibbler | Campaign IDs in every name and UTM, a naming audit, and one ledger joining spend → calls → deals → revenue |
+| Buying Triggers | `/buying-triggers` | fibbler + HubSpot + Brave | Accounts with a fresh trigger (funding, hiring, launches, rising ad engagement). Drafts outreach only when the "event → problem → fix" sentence is sharp |
+| Search Demand | `/search-demand` | Search Console + Bing + AI Visibility + Brave + Ahrefs | Pre-purchase questions from search and calls, what ChatGPT/Claude/Gemini/Perplexity recommend, and briefs for the most useful page or calculator per gap |
+| Creative Engine | `/creative-engine` | Image Gen + Meta / LinkedIn / TikTok Ads | 8–12 distinct concepts from customer words, images generated with real brand assets, uploaded **paused** and named `ID_angle_format_vN` |
+| Ad Kill Rules | `/ad-kill-rules` | All ad platforms | A pre-declared evidence bar, enforced daily. Dry run, approved pause, or a scheduled pause-only script |
+| Closed-Lost Revival | `/closed-lost-revival` | HubSpot + fibbler + Brave | The real reason for every lost deal plus a reopen condition, watched weekly. Drafts notes that quote the original call |
+| Social Engine | `/social-engine` | LinkedIn Organic + X Organic + Brave + Discord | Listening, a weekly hook batch from founder opinions, approved-only scheduling, and organic winners promoted to paid |
+| Performance Memo | `/performance-memo` | fibbler + HubSpot + Stripe + Fortnox + ad platforms | The Monday memo: spend → qualified calls → deals → churn per campaign, every line ending in keep / kill / change / test |
+
+**CRM:** HubSpot is the default (read-only). Salesforce, Pipedrive and Attio map onto the same jobs through the CRM layer in `/marketing-engineer`.
+
+**Beta:** these skills are tested live on Cogny Cloud with Google Ads, Meta, X, GA4, GTM, Search Console, Bing, Mailchimp, Get a Newsletter, Stripe and Discord. Other integrations are built from the Cogny MCP proxy source but haven't run against real accounts yet. If something breaks, [open an issue](https://github.com/cognyai/claude-code-marketing-skills/issues).
+
+**Start here:** `/marketing-engineer setup` → `/marketing-brain` → `/customer-language`. Add the next agent only once you trust the last one.
+
 ### Setting up Premium Skills
 
 1. Sign up at [cogny.com](https://cogny.com)
-2. Connect your accounts (Google Ads, Google Analytics 4, Google Tag Manager, Meta Ads, Search Console, Bing, LinkedIn, HubSpot) and email platforms (Klaviyo, Mailchimp, Rule, Get a Newsletter)
+2. Connect the accounts you use. Skills pick whichever provider in a category is connected (see [Supported integrations](#supported-integrations))
 3. Add Cogny to your `.mcp.json`:
 
 ```json
@@ -111,17 +135,44 @@ These skills connect to your actual ad accounts and email platforms via Cogny's 
 4. Claude Code will open a browser for OAuth login on first use.
 5. Run any premium skill — your AI now has direct access to your marketing data.
 
+On **Solo**, skills record what they find with `create_finding`. On **Cloud**, they use tickets (`create_ticket`) and can also use BigQuery, scripts, automations and image generation. Every skill handles both plans.
+
+### Supported integrations
+
+Skills are written against jobs ("ad-level spend", "campaign report", "lost deals"), not one vendor. A skill runs on any connected provider in the category and reports each one separately when several are connected.
+
+| Category | Providers |
+|----------|-----------|
+| Paid search | Google Ads, Microsoft Ads (Bing Ads), Apple Search Ads, OpenAI Ads |
+| Paid social | Meta Ads, LinkedIn Ads, TikTok Ads, X Ads, Reddit Ads, Snapchat Ads, Bidtheatre |
+| B2B attribution | Fibbler |
+| Web & product analytics | Google Analytics 4, Plausible, Fathom Analytics, Simple Analytics, Adobe Analytics, Microsoft Clarity, PostHog, Mixpanel, Segment, AppsFlyer, GrowthBook |
+| Tagging | Google Tag Manager |
+| SEO & AI search | Google Search Console, Bing Webmaster Tools, Semrush, Ahrefs, AI Visibility (ChatGPT / Claude / Gemini / Perplexity), Brave Search |
+| Email | Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite, Drip, Braze, Salesforce Marketing Cloud, Symplify |
+| CRM & forms | HubSpot, Pipedrive, Upsales, HubSpot Forms |
+| Organic social & community | LinkedIn Organic, X Organic, YouTube, Discord, Crisp |
+| Ecommerce | Shopify, WooCommerce, Abicart, Litium, ShipStation |
+| CMS | WordPress, Webflow, Ghost, Framer, Wix, Sanity, Contentful |
+| Billing & finance | Stripe, Fortnox |
+| Creative | Image generation (Cloud) |
+
+The routing rules every skill follows (tool names, plan differences, choosing a provider, same-job tables) are in [`skills/marketing-engineer/references/mcp-routing.md`](skills/marketing-engineer/references/mcp-routing.md).
+
 ## How It Works
 
 **Free skills** use `WebFetch` and `WebSearch` to analyze publicly available data. No accounts or API keys needed.
 
-**Premium skills** use [Cogny's MCP servers](https://cogny.com) to connect directly to Google Ads, Google Analytics 4, Google Tag Manager, Meta Ads, Search Console, Bing Webmaster Tools, LinkedIn Ads, HubSpot, Klaviyo, Mailchimp, Rule, Get a Newsletter, and Discord. Your AI runs locally (Claude Code, Cursor, etc.), Cogny provides the data pipeline.
+**Premium skills** use [Cogny's MCP gateway](https://cogny.com), which federates 60+ integrations through the Cogny MCP proxy. Your AI runs locally (Claude Code, Cursor, Codex, etc.), and Cogny holds the credentials and serves the data.
 
 ```
-Your Claude Code ──MCP──> Cogny MCP Server ──OAuth/Token──> Google Ads / Meta / Search Console / Bing / LinkedIn / HubSpot
-    (local)                (hosted)                           Klaviyo / Mailchimp / Rule / Get a Newsletter / Discord
-                                                              (your accounts)
+Your Claude Code ──MCP──> Cogny MCP gateway ──> Cogny MCP proxy ──OAuth/Token──> Google Ads / Meta / LinkedIn / TikTok / Reddit / …
+    (local)               app.cogny.com/mcp     (hosted)                         GA4 / Search Console / Semrush / Ahrefs / …
+                                                                                 Klaviyo / Mailchimp / Brevo / HubSpot / Shopify / …
+                                                                                 (your accounts)
 ```
+
+Every connected integration appears as `mcp__<Integration>__<tool>`, e.g. `mcp__Google_Ads__tool_execute_gaql`. With the server registered as `cogny` in `.mcp.json`, Claude Code shows that as `mcp__cogny__mcp__Google_Ads__tool_execute_gaql`, which is the form the skills use. Old names like `mcp__cogny__google_ads__…` are no longer served. <!-- check-tool-names: ignore -->
 ## Results
 
 ### GrowthHackers.se — +271% organic clicks in 3 weeks
@@ -156,6 +207,17 @@ PRs welcome! See individual skill files for the format. Skills should include:
 - Clear step-by-step instructions
 - Specific queries/actions (not vague recommendations)
 - Example output format
+- Read-only tools in `allowed-tools`. Write tools (pause, create, send, schedule) prompt the user.
+
+Tool names are checked against the real Cogny MCP surface:
+
+```bash
+# Regenerate the catalog from the Cogny monorepo (services/mcp-proxy)
+python3 scripts/build-mcp-catalog.py ../cogny/services/mcp-proxy/src/servers
+
+# Check every mcp__cogny__… reference in skills/
+python3 scripts/check-tool-names.py
+```
 
 ## License
 

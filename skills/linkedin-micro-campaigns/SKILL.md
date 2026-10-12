@@ -1,18 +1,44 @@
 ---
 name: linkedin-micro-campaigns
 description: Create precision-targeted LinkedIn ad campaigns for specific ICP segments — translates CRM data to LinkedIn targeting
-version: "1.0.0"
+version: "1.1.1"
+requires: cogny-mcp
 author: Cogny AI
-platforms: [hubspot, linkedin-ads]
+platforms: [hubspot, pipedrive, upsales, fibbler, linkedin-ads]
 user-invocable: true
 argument-hint: "<ICP description or segment>"
 allowed-tools:
-  # HubSpot CRM tools (for ICP data extraction)
-  - mcp__cogny__hubspot__*
-  # LinkedIn Ads tools
-  - mcp__cogny__linkedin_ads__*
+  # CRM tools for ICP data extraction (all read-only)
+
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__HubSpot__get_user_details
+  - mcp__cogny__mcp__HubSpot__search_crm_objects
+  - mcp__cogny__mcp__HubSpot__get_crm_objects
+  - mcp__cogny__mcp__Pipedrive__list_deals
+  - mcp__cogny__mcp__Pipedrive__list_organizations
+  - mcp__cogny__mcp__Pipedrive__list_persons
+  - mcp__cogny__mcp__Pipedrive__list_deal_fields
+  - mcp__cogny__mcp__Upsales__list_orders
+  - mcp__cogny__mcp__Upsales__list_accounts
+  - mcp__cogny__mcp__Upsales__list_contacts
+  - mcp__cogny__mcp__Upsales__get_metadata
+  # Fibbler (warm accounts, titles that engage; read-only)
+  - mcp__cogny__mcp__app-fibbler-co__get_warm_accounts
+  - mcp__cogny__mcp__app-fibbler-co__get_audience_titles
+  - mcp__cogny__mcp__app-fibbler-co__get_deal_campaign_breakdown
+  # LinkedIn Ads read tools (create_* tools ask first, never pre-approved)
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_campaign_groups
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_campaigns
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_campaign
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_creatives
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_targeting_facets
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_audience_counts
+  - mcp__cogny__list_integrations
   # Findings
   - mcp__cogny__create_finding
+  - mcp__cogny__create_ticket
   - Bash
   - Read
   - Write
@@ -22,38 +48,73 @@ allowed-tools:
 
 Create highly targeted LinkedIn ad campaigns for specific ICP segments. Translates your Ideal Customer Profile (from CRM data or manual input) into precision LinkedIn targeting criteria, estimates audience sizes, and builds campaign groups with campaigns and creatives.
 
-**Requires:** Cogny Agent subscription ($9/mo) — [Sign up](https://cogny.com/agent)
+**Requires:** Cogny Agent subscription ($9/mo) — [Sign up](https://cogny.com)
 
 **Tip:** Run `/crm-icp-analysis` first to generate a data-driven ICP, then feed the output into this skill. You can also run `/crm-sales-momentum` to identify which segments close fastest and target those specifically.
 
 ## Usage
 
 `/linkedin-micro-campaigns "VP Marketing at SaaS companies, 200-1000 employees"` — create campaigns from a description
-`/linkedin-micro-campaigns` — pull ICP from HubSpot CRM data automatically
+`/linkedin-micro-campaigns` — pull ICP from connected CRM data automatically
+
+## Works with
+
+| Job | Primary | Also answers it | What differs |
+|-----|---------|-----------------|--------------|
+| Closed-won segments (ICP input) | HubSpot (`search_crm_objects`) | Pipedrive (`list_deals` `status: "won"` + `list_organizations`, `list_persons`), Upsales (`list_orders` + `list_accounts`, `list_contacts`) | Industry and size fields are custom in Pipedrive (decode with `list_deal_fields`) and often custom in Upsales (`get_metadata`); job titles may be sparse outside HubSpot |
+| Titles that already engage | Fibbler `get_audience_titles` | — | Shows titles reached and whether they're targeted today |
+| Accounts warming up (ABM seed) | Fibbler `get_warm_accounts` | — | Companies engaging but not yet deals in the CRM; a signal, not intent |
+| Targeting, sizing, creation | LinkedIn Ads | — | Required; every `create_*` call asks first |
+
+If several CRMs are connected, build segments per CRM and show them side by side; never pool deal values in different currencies.
+
+## Step 0: Cogny check
+
+If no `mcp__cogny__*` tools exist (no `list_integrations`, no `cogny_status`), print this and stop
+before calling anything else:
+
+```
+LinkedIn Micro Campaigns needs your marketing data through Cogny's MCP gateway.
+
+1. Sign up at https://cogny.com and connect LinkedIn Ads (required), plus HubSpot,
+   Pipedrive or Upsales and Fibbler if you use them.
+2. Add Cogny to .mcp.json in your project:
+   {"mcpServers": {"cogny": {"type": "http", "url": "https://app.cogny.com/mcp"}}}
+3. Restart Claude Code; it opens a browser for the OAuth login on first use.
+
+Nothing to run without Cogny.
+```
+
+If Cogny is connected but `mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts` is missing,
+say "connect LinkedIn Ads in Cogny" and stop. A CRM is optional: with one connected the ICP
+is extracted automatically; without one, the ICP comes from the argument.
 
 ## Prerequisites Check
 
-Verify LinkedIn Ads access (required):
+Call `mcp__cogny__list_integrations` once to see which CRM (HubSpot, Pipedrive, Upsales) and
+Fibbler are connected, then verify LinkedIn Ads access (required) and note the account currency:
 
 ```
-linkedin_ads__tool_list_ad_accounts
+mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts
 ```
 
-If HubSpot is also connected (for automatic ICP extraction), verify:
+For HubSpot, also verify with `mcp__cogny__mcp__HubSpot__get_user_details`.
 
-```
-hubspot__get_user_details
-```
+## Failure handling
 
-If LinkedIn Ads is not available:
-
-```
-This skill requires Cogny's LinkedIn Ads MCP server.
-Sign up at https://cogny.com/agent and connect your LinkedIn Ads account.
-
-HubSpot is optional — if connected, ICP data is extracted automatically.
-Without HubSpot, provide your ICP description as an argument.
-```
+- **LinkedIn Ads health check.** `list_integrations` can read `healthy` for a revoked LinkedIn
+  token. If `tool_list_ad_accounts` (or any later LinkedIn call) returns 401, "unauthorized",
+  Forbidden or a scope error, mark LinkedIn Ads 🔴 and **stop**. Don't retry the call and don't
+  build segments on partial data.
+- **Reconnect steps:** in Cogny, open Integrations → LinkedIn Ads → Reconnect, sign in with a
+  LinkedIn user who has at least a Campaign Manager role on the ad account (creating campaigns
+  needs more than Viewer), then re-run `/linkedin-micro-campaigns`.
+- **Unhealthy Fibbler or CRM** (listed as not healthy, or its first read returns 401,
+  Forbidden or a scope error): say "reconnect <integration> in Cogny", skip that source, and
+  continue with the rest. On a 5xx or timeout, retry once, then mark it ⚠ and continue.
+- **No argument and no usable CRM:** ask for the ICP as an argument (e.g.
+  `/linkedin-micro-campaigns "VP Marketing at SaaS companies, 200-1000 employees, Nordics"`)
+  and stop. Don't invent an ICP.
 
 ## Steps
 
@@ -66,12 +127,12 @@ Without HubSpot, provide your ICP description as an argument.
 - Geographic targets
 - Any other targeting dimensions mentioned
 
-**If no argument is provided and HubSpot is connected**, extract ICP from CRM:
+**If no argument is provided and a CRM is connected**, extract ICP from it. HubSpot (primary):
 
 Pull closed-won deal data to identify top-performing segments:
 
 ```
-hubspot__search_crm_objects(
+mcp__cogny__mcp__HubSpot__search_crm_objects(
   objectType: "deals",
   filterGroups: [{"filters": [{"propertyName": "dealstage", "operator": "EQ", "value": "closedwon"}]}],
   properties: ["dealname", "amount", "closedate"],
@@ -86,6 +147,15 @@ Fetch associated companies and contacts to extract:
 - **Job titles and seniority** from buyer contacts
 - **Geographies** from winning companies
 
+**Pipedrive instead:** `mcp__cogny__mcp__Pipedrive__list_deals(status: "won", sort_by: "update_time", sort_direction: "desc", limit: 100)`, then `list_organizations` and `list_persons` for the linked `org_id` / `person_id`. Industry and employee count are usually custom fields that come back as hash keys: decode deal fields with `list_deal_fields`; for organization fields (no definitions tool) ask the user which key is which. Values are in each deal's `currency`.
+
+**Upsales instead:** `mcp__cogny__mcp__Upsales__list_orders(sort: "-date", limit: 200)` and keep orders at probability 100 (won); fetch companies with `list_accounts(filters: [{"field": "id", "comparator": "in", "value": [<client ids>]}])` and buyers with `list_contacts`. Use `get_metadata` to find custom industry/size fields.
+
+**Enhanced when Fibbler is connected:**
+- `mcp__cogny__mcp__app-fibbler-co__get_audience_titles(scope: "total", time_period: "90d")`: titles that already engage. Prefer them in step 2 and drop titles with high impressions and near-zero engagement.
+- `mcp__cogny__mcp__app-fibbler-co__get_warm_accounts(channel: "linkedin", time_period: "90d", limit: 50)`: companies heating up but not yet in the CRM. Offer them as an ABM segment (look each up with `tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:employers", query: "<company>")`), labelled as a signal, not intent.
+- `mcp__cogny__mcp__app-fibbler-co__get_deal_campaign_breakdown(group_by: "campaign", source: "LINKEDIN")`: existing campaigns already linked to pipeline, so new segments don't duplicate a working one.
+
 Group into 2-3 distinct micro-segments based on the data (e.g., "Enterprise Marketing Leaders", "Mid-Market Sales Directors", "Startup Founders").
 
 ### 2. Translate ICP to LinkedIn targeting facets
@@ -94,33 +164,38 @@ For each micro-segment, map ICP dimensions to LinkedIn targeting entities.
 
 **Job Titles** — search for exact LinkedIn targeting entities:
 ```
-linkedin_ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:titles", query: "<title from ICP>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:titles", query: "<title from ICP>")
 ```
+
+Seniorities, company sizes and job functions **don't support typeahead**: a `query` on them
+returns 400 from LinkedIn. Enumerate them once with `finder: "adTargetingFacet"` and no
+`query`, then pick the matching values from the list. The default `limit` is 20; job functions
+need `limit: 50` to return all of them. `tool_get_targeting_facets()` shows each
+facet's `available_entity_finders` if in doubt (`TYPEAHEAD` vs `AD_TARGETING_FACET`).
 
 **Job Functions:**
 ```
-linkedin_ads__tool_get_targeting_facets()
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:jobFunctions", finder: "adTargetingFacet", limit: 50)
 ```
-Then search within job functions for relevant matches.
 
 **Seniorities:**
 ```
-linkedin_ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:seniorities", query: "<level>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:seniorities", finder: "adTargetingFacet")
 ```
 
 **Industries:**
 ```
-linkedin_ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:industries", query: "<industry from ICP>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:industries", query: "<industry from ICP>")
 ```
 
 **Company Sizes:**
 ```
-linkedin_ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:staffCountRanges", query: "<size range>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:staffCountRanges", finder: "adTargetingFacet")
 ```
 
 **Locations:**
 ```
-linkedin_ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:locations", query: "<geo from ICP>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:locations", query: "<geo from ICP>")
 ```
 
 Build the targeting criteria object for each micro-segment using AND logic:
@@ -143,7 +218,7 @@ Build the targeting criteria object for each micro-segment using AND logic:
 For each micro-segment targeting combination, check the audience size:
 
 ```
-linkedin_ads__tool_get_audience_counts(ad_account_id: <id>, targeting_criteria: <targeting object>)
+mcp__cogny__mcp__LinkedIn_Ads__tool_get_audience_counts(ad_account_id: <id>, targeting_criteria: <targeting object>)
 ```
 
 Evaluate each segment:
@@ -159,8 +234,8 @@ Iterate on targeting until each segment hits a viable audience size. Document ad
 Review existing campaigns to avoid audience overlap:
 
 ```
-linkedin_ads__tool_get_campaign_groups(ad_account_id: <id>)
-linkedin_ads__tool_get_campaigns(ad_account_id: <id>, status_filter: "ACTIVE")
+mcp__cogny__mcp__LinkedIn_Ads__tool_get_campaign_groups(ad_account_id: <id>)
+mcp__cogny__mcp__LinkedIn_Ads__tool_get_campaigns(ad_account_id: <id>, status_filter: ["ACTIVE"])
 ```
 
 For each active campaign, compare targeting criteria. Flag overlaps and recommend:
@@ -209,10 +284,10 @@ Approve all? Or select specific campaigns (e.g., "1 and 2 only")
 
 ### 6. Create campaign group
 
-After user approval, create the campaign group:
+After user approval, create the campaign group (write tool; it asks first):
 
 ```
-linkedin_ads__tool_create_campaign_group(
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_campaign_group(
   ad_account_id: <id>,
   name: "[ICP Segment] — Micro Campaigns",
   status: "PAUSED"
@@ -224,14 +299,14 @@ linkedin_ads__tool_create_campaign_group(
 For each approved micro-segment, create a campaign in PAUSED status:
 
 ```
-linkedin_ads__tool_create_campaign(
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_campaign(
   ad_account_id: <id>,
   campaign_group_id: <group_id>,
   name: "[Segment Name]",
   objective_type: "LEAD_GENERATION",
   targeting_criteria: <targeting object from step 2>,
-  daily_budget_amount: <amount>,
-  daily_budget_currency: "USD",
+  daily_budget_amount: "<amount>",
+  daily_budget_currency: "<account currency from tool_list_ad_accounts>",
   cost_type: "CPM",
   status: "PAUSED"
 )
@@ -247,31 +322,37 @@ Ask the user for:
 - Landing page URL
 - Any specific messaging, value props, or offers to include
 
-Then create variations:
+You also need the authoring Page (`author_organization_urn`, e.g. from an existing creative or Campaign Manager) and an image: upload it with `tool_upload_image` (asks first) or pass `image_url`. Without an image the ad is text-only and the URL, headline and CTA don't render. New creatives are created as `DRAFT` (LinkedIn can't create them paused), so they won't serve until the user activates them.
+
+Then create variations (write tool; it asks first):
 
 **Variation A — Pain point focus:**
 ```
-linkedin_ads__tool_create_creative(
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_creative(
+  ad_account_id: <id>,
   campaign_id: <id>,
+  author_organization_urn: "urn:li:organization:<id>",
   commentary: "<Segment-specific pain point intro — 150 chars visible>",
-  share_media_title: "<Pain point headline — 70 chars max>",
-  share_media_description: "<Supporting detail>",
+  headline: "<Pain point headline — 70 chars max>",
+  image_urn: "<urn:li:image:… from tool_upload_image>",
   destination_url: "<landing page URL>",
   call_to_action_type: "LEARN_MORE",
-  status: "PAUSED"
+  status: "DRAFT"
 )
 ```
 
 **Variation B — Outcome focus:**
 ```
-linkedin_ads__tool_create_creative(
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_creative(
+  ad_account_id: <id>,
   campaign_id: <id>,
+  author_organization_urn: "urn:li:organization:<id>",
   commentary: "<Segment-specific outcome/result intro — 150 chars visible>",
-  share_media_title: "<Outcome headline — 70 chars max>",
-  share_media_description: "<Supporting detail>",
+  headline: "<Outcome headline — 70 chars max>",
+  image_urn: "<urn:li:image:… from tool_upload_image>",
   destination_url: "<landing page URL>",
   call_to_action_type: "LEARN_MORE",
-  status: "PAUSED"
+  status: "DRAFT"
 )
 ```
 
@@ -292,9 +373,9 @@ Ad Account: [Account Name]
 ┌──────────────────────┬──────────┬───────────┬──────────┬──────────────┐
 │ Campaign             │ Audience │ Budget/day│ Status   │ Creatives    │
 ├──────────────────────┼──────────┼───────────┼──────────┼──────────────┤
-│ [Segment A]          │ [N]      │ $[X]      │ PAUSED   │ 2 variations │
-│ [Segment B]          │ [N]      │ $[X]      │ PAUSED   │ 2 variations │
-│ [Segment C]          │ [N]      │ $[X]      │ PAUSED   │ 2 variations │
+│ [Segment A]          │ [N]      │ [X]       │ PAUSED   │ 2 drafts     │
+│ [Segment B]          │ [N]      │ [X]       │ PAUSED   │ 2 drafts     │
+│ [Segment C]          │ [N]      │ [X]       │ PAUSED   │ 2 drafts     │
 ├──────────────────────┼──────────┼───────────┼──────────┼──────────────┤
 │ TOTAL                │ [N]      │ $[X]      │          │ [N] total    │
 └──────────────────────┴──────────┴───────────┴──────────┴──────────────┘
@@ -304,11 +385,11 @@ Targeting Summary per Campaign:
 [Campaign 2]: [titles] + [seniority] + [industries] + [size] + [geo]
 [Campaign 3]: [titles] + [seniority] + [industries] + [size] + [geo]
 
-ICP Data Source: [HubSpot CRM / Manual Input]
+ICP Data Source: [HubSpot / Pipedrive / Upsales / Fibbler warm accounts / Manual Input]
 Deals Analyzed: [N] (if from CRM)
 
 Next Steps:
-1. Review creatives and update copy/images as needed
+1. Review the DRAFT creatives and update copy/images as needed
 2. Set campaign group status to ACTIVE when ready to launch
 3. Monitor for 7 days before optimizing
 4. Run /linkedin-ads-audit after 14 days to evaluate performance
@@ -332,9 +413,16 @@ For each micro-campaign created, call `mcp__cogny__create_finding`:
 }
 ```
 
+On Cloud, send the same content with `create_ticket`, mapping the fields per section 2 of the routing guide.
+
 Action types for micro-campaigns:
 - `campaign_creation` — new campaigns built from ICP data
 - `targeting_refinement` — audience adjustments based on size/overlap
 - `creative_refresh` — new ad variations for testing
 - `budget_optimization` — spend reallocation across segments
 - `audience_overlap` — overlap detection and exclusion recommendations
+
+## Recording findings
+
+Use `create_ticket` when the workspace has it (Cloud) and `create_finding` otherwise (Solo).
+The fields differ; see section 2 of `../marketing-engineer/references/mcp-routing.md`.

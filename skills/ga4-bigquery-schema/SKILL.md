@@ -1,7 +1,7 @@
 ---
 name: ga4-bigquery-schema
 description: GA4 BigQuery Export Schema Reference — complete field reference, nested structures, query patterns, and performance tips
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -11,6 +11,15 @@ allowed-tools:
   - Read
   - Write
   - Bash
+  # Enhanced when connected via Cogny MCP (read-only)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__list_datasets
+  - mcp__cogny__list_tables
+  - mcp__cogny__inspect_schema
+  - mcp__cogny__execute_bigquery_sql
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
 ---
 
 # GA4 BigQuery Export Schema Reference
@@ -35,6 +44,36 @@ You are a GA4 BigQuery schema expert. Use this reference to help users understan
 When the user asks a question, find the relevant section below and provide precise, actionable answers with ready-to-use SQL examples.
 
 If the user provides a specific topic as an argument, focus on that area. Otherwise, provide an overview of the schema structure.
+
+## Works with
+
+Works with zero accounts: every query below is copy-paste SQL. When connected:
+
+| Job | Solo / no account | Cogny Cloud | Plus GA4 connected |
+|-----|-------------------|-------------|--------------------|
+| Find the export dataset | user supplies `project.analytics_ID` | `list_datasets` → `list_tables` | — |
+| Check the real schema | the reference below | `inspect_schema` | — |
+| Run a query | user runs it | `execute_bigquery_sql` (read-only SELECTs) | — |
+| Reconcile export vs UI | — | `execute_bigquery_sql` | `tool_run_report` (same dates) |
+
+BigQuery tools are Cloud-only (section 2 of `../marketing-engineer/references/mcp-routing.md`).
+On Solo, give the SQL and stop.
+
+### Run it on the user's data (Cloud)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+1. `list_datasets`, pick the one named `analytics_<property id>`; `list_tables` to confirm
+   daily `events_*` tables exist (and `events_intraday_*` if streaming is on).
+2. `inspect_schema` on one daily table before writing SQL; custom `event_params` keys and
+   `user_properties` vary per property.
+3. Swap `project.analytics_123456789` in the chosen query for the real path, keep the
+   `_TABLE_SUFFIX` filter, then `execute_bigquery_sql`.
+4. **Reconcile** (GA4 connected): run `tool_run_report` (`property_id`, same `date_ranges`,
+   `metrics: [eventCount, totalUsers]`, `dimensions: [eventName]`) next to the export
+   count. A gap under ~2% is normal (late hits, thresholding); a larger one, or users far
+   apart, usually means consent mode modelling in the UI or a broken export day (see Data
+   Quality Checks). Name the source on every number.
 
 ---
 
@@ -78,7 +117,9 @@ ORDER BY ordinal_position
 | `device` | STRUCT | Device information |
 | `geo` | STRUCT | Geographic information |
 | `app_info` | STRUCT | App information (mobile apps) |
-| `traffic_source` | STRUCT | Traffic source information |
+| `traffic_source` | STRUCT | First-touch source that acquired the **user** (never changes) |
+| `collected_traffic_source` | STRUCT | UTMs / click IDs collected on **this event** |
+| `session_traffic_source_last_click` | STRUCT | Last-click attributed **session** source (manual, Google Ads, CM360, DV360, SA360) |
 | `stream_id` | STRING | Numeric ID of the data stream |
 | `platform` | STRING | Platform (web, ios, android) |
 | `ecommerce` | STRUCT | E-commerce transaction data |
@@ -229,15 +270,43 @@ LIMIT 100
 
 ### traffic_source
 
+`traffic_source` is the source that **first acquired the user**. It doesn't change on later
+visits and isn't populated in intraday tables. Use it for user acquisition, never for
+session or campaign attribution.
+
 ```sql
 STRUCT<
-  name STRING,   -- Traffic source name (google, facebook, etc.)
-  medium STRING, -- Traffic medium (organic, cpc, referral, etc.)
-  source STRING  -- Traffic source (google, facebook.com, etc.)
+  name STRING,   -- First-touch campaign name
+  medium STRING, -- First-touch medium (organic, cpc, referral, etc.)
+  source STRING  -- First-touch source (google, facebook.com, etc.)
 >
 ```
 
-**Example — traffic source performance:**
+For session attribution use:
+
+- `collected_traffic_source` — what was on the event itself: `manual_source`,
+  `manual_medium`, `manual_campaign_name`, `manual_term`, `manual_content`,
+  `manual_campaign_id`, `gclid`, `dclid`, `srsltid`.
+- `session_traffic_source_last_click` — GA4's last-click session attribution:
+  `manual_campaign.{source, medium, campaign_name, ...}`,
+  `google_ads_campaign.{customer_id, campaign_id, campaign_name, ad_group_name, ...}`,
+  `cross_channel_campaign.{source, medium, campaign_name, ...}`.
+
+```sql
+-- Sessions by last-click session source/medium
+SELECT
+  session_traffic_source_last_click.cross_channel_campaign.source AS source,
+  session_traffic_source_last_click.cross_channel_campaign.medium AS medium,
+  COUNT(DISTINCT CONCAT(user_pseudo_id, '-',
+    CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS STRING))) AS sessions
+FROM `project.analytics_123456789.events_*`
+WHERE _TABLE_SUFFIX = FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
+  AND event_name = 'session_start'
+GROUP BY 1, 2
+ORDER BY sessions DESC
+```
+
+**Example — first-touch (user acquisition) performance:**
 
 ```sql
 SELECT
@@ -349,11 +418,11 @@ LIMIT 100
 SELECT
   DATE(TIMESTAMP_MICROS(event_timestamp)) as date,
   COUNT(DISTINCT user_pseudo_id) as users,
-  COUNT(DISTINCT CONCAT(user_pseudo_id,
-    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id'))) as sessions,
+  COUNT(DISTINCT CONCAT(user_pseudo_id, '-',
+    CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS STRING)))) as sessions,
   SAFE_DIVIDE(
-    COUNT(DISTINCT CONCAT(user_pseudo_id,
-      (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id'))),
+    COUNT(DISTINCT CONCAT(user_pseudo_id, '-',
+      CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS STRING)))),
     COUNT(DISTINCT user_pseudo_id)
   ) as sessions_per_user
 FROM `project.analytics_123456789.events_*`
@@ -481,6 +550,13 @@ WITH cohorts AS (
                           AND FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
   GROUP BY user_pseudo_id
 ),
+-- Size each cohort BEFORE joining activity; counting inside the join only sees
+-- users who were active on that day, which makes retention ~100%.
+cohort_sizes AS (
+  SELECT cohort_date, COUNT(*) as cohort_size
+  FROM cohorts
+  GROUP BY cohort_date
+),
 user_activity AS (
   SELECT user_pseudo_id, DATE(TIMESTAMP_MICROS(event_timestamp)) as activity_date
   FROM `project.analytics_123456789.events_*`
@@ -490,52 +566,72 @@ user_activity AS (
 )
 
 SELECT
-  cohort_date,
-  DATE_DIFF(activity_date, cohort_date, DAY) as days_since_cohort,
-  COUNT(DISTINCT c.user_pseudo_id) as cohort_size,
+  c.cohort_date,
+  DATE_DIFF(a.activity_date, c.cohort_date, DAY) as days_since_cohort,
+  s.cohort_size,
   COUNT(DISTINCT a.user_pseudo_id) as active_users,
-  SAFE_DIVIDE(COUNT(DISTINCT a.user_pseudo_id), COUNT(DISTINCT c.user_pseudo_id)) as retention_rate
+  SAFE_DIVIDE(COUNT(DISTINCT a.user_pseudo_id), s.cohort_size) as retention_rate
 FROM cohorts c
-LEFT JOIN user_activity a USING(user_pseudo_id)
-WHERE DATE_DIFF(activity_date, cohort_date, DAY) IN (0, 1, 7, 14, 30, 60, 90)
-GROUP BY 1, 2
+JOIN user_activity a USING(user_pseudo_id)
+JOIN cohort_sizes s USING(cohort_date)
+WHERE DATE_DIFF(a.activity_date, c.cohort_date, DAY) IN (0, 1, 7, 14, 30, 60, 90)
+GROUP BY 1, 2, 3
 ORDER BY 1 DESC, 2
 ```
 
 ## Performance Best Practices
 
-### Partition Pruning — always use _TABLE_SUFFIX
+### Table pruning — always use _TABLE_SUFFIX
 
 ```sql
--- GOOD: Uses partition pruning
+-- GOOD: only scans the daily tables in range
 WHERE _TABLE_SUFFIX BETWEEN '20250101' AND '20250131'
 
--- BAD: Scans all partitions
+-- BAD: scans every daily table
 WHERE event_date BETWEEN '20250101' AND '20250131'
 ```
 
-### Clustering — filter by event_name
+### Clustering — the export tables aren't clustered
 
-GA4 tables are clustered by `event_name`. Always include an `event_name` filter when possible.
-
-### Materialized Views
-
-Create materialized views for frequently accessed aggregations:
+The daily `events_YYYYMMDD` tables are date-sharded and, as exported, not partitioned or
+clustered, so an `event_name` filter doesn't cut bytes scanned. Cost comes from the
+`_TABLE_SUFFIX` range and the columns you select. Check a property with:
 
 ```sql
-CREATE MATERIALIZED VIEW `project.analytics_123456789.daily_summary`
+SELECT column_name, clustering_ordinal_position
+FROM `project.analytics_123456789.INFORMATION_SCHEMA.COLUMNS`
+WHERE table_name = 'events_20250101' AND clustering_ordinal_position IS NOT NULL
+```
+
+For heavy reuse, copy into your own table with `PARTITION BY` / `CLUSTER BY event_name`
+(see below).
+
+### Pre-aggregated summary table (scheduled query)
+
+A materialized view won't work here: BigQuery materialized views don't allow
+non-deterministic functions like `CURRENT_DATE()`, don't support `COUNT(DISTINCT)`
+(only `APPROX_COUNT_DISTINCT`), and can't sit on the `events_*` wildcard. Build a regular
+table instead and refresh it with a **scheduled query** (BigQuery > Scheduled queries,
+daily, after the export lands). Write it to your own dataset, not the export dataset.
+
+```sql
+-- One-off backfill; schedule the same SELECT for yesterday with "append to table"
+CREATE OR REPLACE TABLE `project.reporting.ga4_daily_summary`
+PARTITION BY event_date_d
+CLUSTER BY source, medium
 AS
 SELECT
-  event_date,
-  traffic_source.source,
-  traffic_source.medium,
+  PARSE_DATE('%Y%m%d', event_date) as event_date_d,
+  session_traffic_source_last_click.cross_channel_campaign.source as source,
+  session_traffic_source_last_click.cross_channel_campaign.medium as medium,
   device.category,
   COUNT(DISTINCT user_pseudo_id) as users,
   COUNT(*) as events,
   COUNTIF(event_name = 'purchase') as purchases,
   SUM(CASE WHEN event_name = 'purchase' THEN ecommerce.purchase_revenue_in_usd END) as revenue
 FROM `project.analytics_123456789.events_*`
-WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY))
+WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY))
+                        AND FORMAT_DATE('%Y%m%d', CURRENT_DATE() - 1)
 GROUP BY 1, 2, 3, 4
 ```
 

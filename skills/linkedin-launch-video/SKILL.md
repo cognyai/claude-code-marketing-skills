@@ -1,9 +1,9 @@
 ---
 name: linkedin-launch-video
 description: Produce a LinkedIn-native 1:1 (or 16:9) launch video using HyperFrames. Caption-first, sound-off, B2B register, anti-corporate-jargon. Optionally hand off to LinkedIn Ads to launch as a sponsored content campaign with ICP-aligned targeting.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
-platforms: [linkedin-ads, hyperframes]
+platforms: [linkedin-ads, linkedin-organic, x-organic, hyperframes]
 user-invocable: true
 argument-hint: "<product URL or short brief>"
 allowed-tools:
@@ -14,12 +14,20 @@ allowed-tools:
   - Write
   - Edit
   # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__refresh_mcp_discovery
   - mcp__cogny__get_context_tree_overview
   - mcp__cogny__browse_context_tree
   - mcp__cogny__read_context_node
   - mcp__cogny__search_context
-  # Optional handoff to LinkedIn Ads when the user wants to publish as sponsored content
-  - mcp__cogny__linkedin_ads__*
+  # Optional handoff (read tools only; create/upload/post tools ask first)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_targeting_facets
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_audience_counts
+  - mcp__cogny__mcp__LinkedIn_Organic__tool_list_organizations
+  - mcp__cogny__mcp__LinkedIn_Organic__tool_get_organization_posts
+  - mcp__cogny__mcp__LinkedIn_Organic__tool_get_post_statistics
 ---
 
 # LinkedIn Launch Video
@@ -33,6 +41,16 @@ LinkedIn's autoplay is muted, the feed is scrolled in 2-second chunks, and the a
 `/linkedin-launch-video https://example.com/launch` — pulls context from a launch page
 `/linkedin-launch-video "we're shipping inbound CRM scoring for B2B sales teams"` — short brief
 `/linkedin-launch-video` — interview the user
+
+## Works with
+
+Making the video needs no accounts. Publishing is optional, and every publish call asks first.
+
+| Job | Primary | Also answers it | What differs |
+|-----|---------|-----------------|--------------|
+| Run as sponsored content | LinkedIn Ads | — | Created `PAUSED`; the creative is a `DRAFT` until the user activates it |
+| Post organically | LinkedIn Organic (company Page) | X Organic | Personal profiles still out-reach Pages; X takes the same MP4 (≤ 512 MB) |
+| What past video posts did (optional) | LinkedIn Organic `tool_get_organization_posts` + `tool_get_post_statistics` | — | Use to pick length and hook style before scripting |
 
 ## Prerequisites
 
@@ -117,9 +135,11 @@ Hand the beat sheet back. **Wait for confirmation.**
 ### 4. Scaffold the HyperFrames project
 
 ```bash
-npx -y hyperframes@latest init <product-slug>-linkedin --yes
+npx -y hyperframes@latest init <product-slug>-linkedin --non-interactive --resolution square
 cd <product-slug>-linkedin
 ```
+
+Use `--resolution landscape` instead for the 16:9 variant (step 5). There is no `--yes` flag; `--non-interactive` is what disables the prompts.
 
 ### 5. Compose the video (1:1 default, 16:9 alternative)
 
@@ -138,6 +158,14 @@ LinkedIn-specific styling rules:
 - **Numbers > adjectives**: every claim needs a number. If you can't put a number on a card, cut the card.
 
 ### 6. Lint & render
+
+Check dependencies first:
+
+```bash
+npx hyperframes doctor
+```
+
+If it reports FFmpeg missing, stop before rendering and tell the user to install it (`brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian/Ubuntu). Meanwhile, `npx hyperframes snapshot` captures key frames as PNGs without FFmpeg, so they can review the cards.
 
 ```bash
 npx hyperframes lint
@@ -158,27 +186,31 @@ If any check fails, edit and re-render.
 
 If the user wants to run this as paid sponsored content, LinkedIn's edge is **B2B targeting precision**. Use it.
 
-```
-linkedin_ads__tool_list_ad_accounts
-linkedin_ads__tool_get_targeting_facets(account_id)
-linkedin_ads__tool_search_targeting_entities(account_id, facet='industries', query='<industry>')
-linkedin_ads__tool_get_audience_counts(account_id, criteria={...})   # confirm reach before launch
+The MCP needs the video at a public URL. On Cloud, call `mcp__cogny__mcp__cogny-image-gen__tool_request_upload_url` and run the returned curl to get a `public_url` (asks first); otherwise ask the user for a hosted link. Then, after the user approves each write:
 
-linkedin_ads__tool_create_campaign_group(account_id, name, status='PAUSED')
-linkedin_ads__tool_create_campaign(
-  account_id, campaign_group_id, name,
-  objective='VIDEO_VIEWS' or 'WEBSITE_VISITS' or 'LEAD_GENERATION',
-  status='PAUSED',
-  ...
+```
+mcp__cogny__mcp__LinkedIn_Ads__tool_list_ad_accounts                       # note the currency
+mcp__cogny__mcp__LinkedIn_Ads__tool_search_targeting_entities(facet_urn: "urn:li:adTargetingFacet:industries", query: "<industry>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_get_audience_counts(ad_account_id, targeting_criteria: {...})   # confirm reach before launch
+
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_campaign_group(ad_account_id, name, status: "PAUSED")
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_campaign(
+  ad_account_id, campaign_group_id, name,
+  objective_type: "VIDEO_VIEW" | "WEBSITE_VISIT" | "LEAD_GENERATION",
+  daily_budget_amount: "<amount the user stated>", daily_budget_currency: "<account currency>",
+  targeting_criteria: {...}, status: "PAUSED"
 )
-# Upload the rendered MP4 in LinkedIn Campaign Manager (the MCP doesn't currently
-# upload video assets directly), then:
-linkedin_ads__tool_create_creative(account_id, campaign_id, ..., status='PAUSED')
+mcp__cogny__mcp__LinkedIn_Ads__tool_upload_video(ad_account_id, video_url: "<public MP4 URL, ≤ 200 MB>", owner_urn: "urn:li:organization:<page id>")
+mcp__cogny__mcp__LinkedIn_Ads__tool_create_creative(
+  ad_account_id, campaign_id, author_organization_urn: "urn:li:organization:<page id>",
+  commentary, image_urn: "<urn:li:video:… from upload_video>", destination_url, call_to_action_type,
+  status: "DRAFT"
+)
 ```
 
 Notes:
 
-- All entities `PAUSED` by default. The user activates manually after reviewing creative.
+- Campaign group and campaign are `PAUSED`; the creative is `DRAFT` (LinkedIn can't create creatives paused). The user activates manually after reviewing.
 - Budget amounts are strings in the account's currency ("100.00" = $100).
 - Use `get_audience_counts` *before* `create_campaign` — LinkedIn won't let an audience smaller than 300 ship.
 - For LEAD_GENERATION, you need a Lead Gen Form ID — that's not creatable via this MCP, so create it in Campaign Manager first.
@@ -187,6 +219,8 @@ If the user has run `/crm-icp-analysis` and `/linkedin-micro-campaigns`, this sk
 
 For organic posting: hand the user `launch.mp4` and recommend posting from a **personal profile** (or both personal + company page). Personal-profile organic reach on LinkedIn beats company-page reach by roughly 5–10x.
 
+If LinkedIn Organic is connected, offer to post or schedule it on the company Page (asks first, needs the public URL): `mcp__cogny__mcp__LinkedIn_Organic__tool_schedule_post(scheduled_for, text, author: "<org URN from tool_list_organizations>", video_url, video_title)`, or `tool_create_post` with the same fields to post now. If X Organic is connected, offer `mcp__cogny__mcp__X_Organic__tool_upload_media(file_url)` then `tool_create_post(text, media_ids)` (posts publicly at once, so confirm the text first).
+
 ## Output format
 
 When you finish, print:
@@ -194,7 +228,8 @@ When you finish, print:
 1. Path to the rendered MP4
 2. The beat sheet
 3. The format chosen and why it fits the ICP
-4. (If applicable) the LinkedIn Ads campaign group / campaign / creative IDs created in PAUSED state, plus the audience size estimate
+4. (If applicable) the LinkedIn Ads campaign group / campaign (PAUSED) and creative (DRAFT) IDs, plus the audience size estimate
+5. (If applicable) the scheduled or published organic post IDs
 
 ## Common mistakes
 

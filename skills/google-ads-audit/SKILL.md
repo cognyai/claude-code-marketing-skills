@@ -1,18 +1,31 @@
 ---
 name: google-ads-audit
-description: Comprehensive Google Ads account audit — campaign structure, budget pacing, conversion tracking, wasted spend — across every campaign type, ranked by estimated $ impact
-version: "1.0.0"
+description: Comprehensive Google Ads account audit (Microsoft Ads side by side when connected) — campaign structure, budget pacing, conversion tracking, wasted spend — across every campaign type, ranked by estimated $ impact
+version: "1.1.2"
 author: Cogny AI
 requires: cogny-mcp
-platforms: [google-ads]
+platforms: [google-ads, microsoft-ads]
 user-invocable: true
 argument-hint: "[full|campaigns|budget|tracking|negatives]"
 allowed-tools:
-  - mcp__cogny__google_ads__tool_list_accessible_accounts
-  - mcp__cogny__google_ads__tool_execute_gaql
-  - mcp__cogny__google_ads__tool_get_gaql_doc
-  - mcp__cogny__google_ads__tool_get_reporting_view_doc
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Ads__tool_list_accessible_accounts
+  - mcp__cogny__mcp__Google_Ads__tool_execute_gaql
+  - mcp__cogny__mcp__Google_Ads__tool_get_gaql_doc
+  - mcp__cogny__mcp__Google_Ads__tool_get_reporting_view_doc
+  - mcp__cogny__mcp__Bing_Ads__tool_list_accounts
+  - mcp__cogny__mcp__Bing_Ads__tool_get_campaigns
+  - mcp__cogny__mcp__Bing_Ads__tool_get_negative_keywords
+  - mcp__cogny__mcp__Bing_Ads__tool_get_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_conversion_events
+  - mcp__cogny__mcp__Shopify__tool_list_orders
+  - mcp__cogny__mcp__WooCommerce__get_sales_report
+  - mcp__cogny__mcp__WooCommerce__list_orders
+  - mcp__cogny__list_integrations
   - mcp__cogny__create_finding
+  - mcp__cogny__create_ticket
   - WebFetch
   - WebSearch
 ---
@@ -23,23 +36,38 @@ A one-time, account-wide Google Ads health audit using live data via Cogny's MCP
 server. Covers every campaign type, scores the account out of 100, and routes you to
 the right campaign-type skill for deeper drill-down.
 
-**Requires:** Cogny Agent subscription ($9/mo) — [Sign up](https://cogny.com/agent)
+**Requires:** Cogny Agent subscription ($9/mo) — [Sign up](https://cogny.com)
 
-## Prerequisites Check
+## Works with
 
-Verify Google Ads MCP tools are available. If `mcp__cogny__google_ads__tool_execute_gaql`
-is not available:
+| Job | Primary | Also answers it | Differences to state |
+|-----|---------|-----------------|----------------------|
+| Campaign overview, pacing, waste | Google Ads | Microsoft Ads (`Bing_Ads` `tool_get_report`) | Bing money is account-currency units, not micros; percents are percents |
+| Conversion tracking structure | Google Ads (`conversion_action`) | — | Microsoft Ads conversion goals aren't exposed; check volume only |
+| Are the conversions real? | Shopify / WooCommerce orders | GA4 key events and revenue | Store = actual paid orders; Ads = attributed, modelled, can double-count |
+
+Call `list_integrations` once. Audit Google Ads in full; if Microsoft Ads is connected,
+add its overview, pacing and waste numbers as a separate block. Never sum the two.
+
+## Step 0: Cogny check
+
+If no `mcp__cogny__*` tools exist (no `list_integrations`, no `cogny_status`), print this and stop:
 
 ```
-This skill requires Cogny's Google Ads MCP server.
+Google Ads Audit needs your marketing data through Cogny's MCP gateway.
 
-1. Sign up at https://cogny.com/agent
-2. Connect your Google Ads account
-3. Add Cogny to your .mcp.json (see the repo README)
-4. Restart Claude Code
+1. Sign up at https://cogny.com and connect Google Ads (and Microsoft Ads, GA4, Shopify or
+   WooCommerce if you use them).
+2. Add Cogny to .mcp.json in your project:
+   {"mcpServers": {"cogny": {"type": "http", "url": "https://app.cogny.com/mcp"}}}
+3. Restart Claude Code; it opens a browser for the OAuth login on first use.
+
+Nothing to run without Cogny.
 ```
 
-Stop here if the tools are missing — do not guess at numbers.
+If Cogny is connected but `mcp__cogny__mcp__Google_Ads__tool_execute_gaql` is missing, say
+"connect Google Ads in Cogny" (or "reconnect Google Ads in Cogny" if it's listed but unhealthy
+or a read returns 401/permission denied) and stop. Do not guess at numbers.
 
 ## Usage
 
@@ -58,6 +86,9 @@ audiences) it points you to `/pmax-audit`, `/search-campaign-audit`,
 
 All money fields come back in micros — divide `cost_micros` etc. by 1,000,000.
 
+An empty GAQL result (no rows, or the tool returns no output) means zero: no matching
+entities or no activity in the window. Report it as 0, not as an error or missing data.
+
 ## Steps
 
 ### 1. Account discovery
@@ -66,16 +97,23 @@ All money fields come back in micros — divide `cost_micros` etc. by 1,000,000.
 tool_list_accessible_accounts
 ```
 
-If multiple accounts are accessible, list them and ask which to audit. Confirm the
-account name and currency before continuing.
+If multiple accounts are accessible, list them and ask which to audit. Then read the
+account name and currency:
+
+```sql
+SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone
+FROM customer
+```
+
+Report every Google Ads money figure in `customer.currency_code`.
 
 ### 2. Campaign overview by channel type (last 30 days)
 
 ```sql
-SELECT campaign.name, campaign.status, campaign.advertising_channel_type,
-  campaign.bidding_strategy_type, campaign_budget.amount_micros,
-  metrics.cost_micros, metrics.conversions, metrics.conversions_value,
-  metrics.clicks, metrics.impressions
+SELECT customer.currency_code, campaign.name, campaign.status,
+  campaign.advertising_channel_type, campaign.bidding_strategy_type,
+  campaign_budget.amount_micros, metrics.cost_micros, metrics.conversions,
+  metrics.conversions_value, metrics.clicks, metrics.impressions
 FROM campaign
 WHERE segments.date DURING LAST_30_DAYS
 ORDER BY metrics.cost_micros DESC
@@ -83,6 +121,14 @@ ORDER BY metrics.cost_micros DESC
 
 Build a per-channel-type summary (Search / Performance Max / Shopping / Display /
 Video / Demand Gen): total spend, conversions, CPA, ROAS (`conversions_value / cost`).
+
+**Microsoft Ads (if connected):** `mcp__cogny__mcp__Bing_Ads__tool_list_accounts`, then
+`tool_get_campaigns` (`account_id`, `campaign_types: ["Search", "Shopping", "PerformanceMax", "Audience"]`)
+and `tool_get_report` (`account_id` from `tool_list_accounts`, `report_type: "campaign"`,
+`start_date`, `end_date`). Every `tool_get_report` call needs `account_id`. Build the same
+per-type summary from `Spend`, `Conversions`, `Revenue`, `CampaignType`. Many accounts
+import Google campaigns into Microsoft Ads; flag imported campaigns with zero conversions
+or a CPA more than 2x the Google equivalent.
 
 Flag:
 - Campaigns spending >5% of account budget with **zero conversions**
@@ -118,6 +164,9 @@ FROM customer
 WHERE segments.date DURING LAST_30_DAYS
 ```
 
+An empty result here means **0 conversions for every action** in the window. Go straight
+to 3c and report it as zero volume, not as a failed query.
+
 Then join: for every conversion action with non-trivial volume, note whether it is
 Primary or Secondary, and whether `metrics.conversions` (the bidding signal) or only
 `metrics.all_conversions` (the reporting signal) is counting it.
@@ -139,6 +188,20 @@ Flag (each must be backed by a number from 3b, not a guess from 3a):
 - Two near-duplicate Primary actions both firing on the same event (e.g. on-site
   booking + GA4 booking both Primary → double-counted bid signal).
 - `REMOVED` / `HIDDEN` actions still receiving conversions.
+
+**3d. Enhanced when connected: check against real sales.** For ecommerce, pull the
+same 30 days from the store: Shopify `mcp__cogny__mcp__Shopify__tool_list_orders`
+(`query_filter: "created_at:>=YYYY-MM-DD financial_status:paid"`, paginate with `after`)
+or WooCommerce `mcp__cogny__mcp__WooCommerce__get_sales_report` (`date_min`, `date_max`).
+For lead gen or as a second view, find the property with GA4 `tool_list_account_summaries`,
+then `tool_run_report` (`property_id`, `date_ranges`,
+`dimensions: ["sessionGoogleAdsCampaignName"]`, `metrics: ["sessions", "keyEvents", "purchaseRevenue"]`).
+Keep `sessions` in the list: GA4 drops rows where every requested metric is 0, so without it
+campaigns with zero key events and zero revenue vanish instead of showing as 0.
+Report as a ratio, never as a correction: "Google Ads purchase value = 1.4x Shopify paid
+revenue for the period." If Ads-reported purchase value exceeds total store revenue, that's
+a tracking finding (double counting or a wrong value), backed by both numbers. Paid-order
+counts from the store are the ground truth; GA4 and Ads both attribute.
 
 **Do NOT flag:**
 - A gap between `all_conversions` and `conversions`, by itself. That gap is just the
@@ -168,16 +231,61 @@ Flag:
 
 ### 5. Account negatives & exclusions
 
+Negatives live in three places. Query all three before saying an account has none.
+
+**Shared lists:**
+
 ```sql
 SELECT shared_set.name, shared_set.type, shared_set.status, shared_set.member_count
 FROM shared_set
 ```
 
+**Campaign-level negatives:**
+
+```sql
+SELECT campaign.name, campaign.advertising_channel_type,
+  campaign_criterion.keyword.text, campaign_criterion.keyword.match_type
+FROM campaign_criterion
+WHERE campaign_criterion.type = 'KEYWORD' AND campaign_criterion.negative = TRUE
+  AND campaign.status = 'ENABLED'
+```
+
+**Ad-group-level negatives:**
+
+```sql
+SELECT campaign.name, ad_group.name,
+  ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type
+FROM ad_group_criterion
+WHERE ad_group_criterion.type = 'KEYWORD' AND ad_group_criterion.negative = TRUE
+  AND campaign.status = 'ENABLED'
+```
+
+**Brand terms in non-brand campaigns** (keywords and the search terms from step 6):
+
+```sql
+SELECT campaign.name, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type,
+  metrics.cost_micros, metrics.conversions
+FROM keyword_view
+WHERE segments.date DURING LAST_30_DAYS AND campaign.status = 'ENABLED'
+  AND ad_group_criterion.status = 'ENABLED'
+```
+
+Treat a campaign as brand if its name says so (e.g. contains "brand"). In every other
+campaign, match keyword text and search terms against the brand name and its common
+misspellings.
+
 Flag:
-- No negative keyword lists shared across Search campaigns
-- No brand-term handling (brand traffic mixed into non-brand campaigns)
+- No negatives at any of the three levels on Search campaigns
+- No negative keyword lists shared across Search campaigns (campaign- or ad-group-level
+  negatives only — works, but hard to maintain)
+- Brand terms bidding or matching inside non-brand campaigns, with their spend (inflates
+  non-brand performance and cannibalises the brand campaign); the fix is the brand name as a
+  negative in non-brand campaigns
 - For Performance Max / Display: missing account-level placement and content
   exclusions (brand-safety + waste risk)
+
+Microsoft Ads: `tool_get_negative_keywords` (`account_id`, `entity_type: "Campaign"`,
+`entity_ids`) covers campaign-level negatives only, not shared lists.
 
 ### 6. Wasted spend scan (last 30 days)
 
@@ -193,11 +301,16 @@ LIMIT 50
 Sum the cost of terms with **zero conversions and meaningful spend** — this is the
 headline "wasted spend" number and the source of the largest `estimated_impact_usd`.
 
+Microsoft Ads: `tool_get_report` with `account_id` and `report_type: "search_query"`; total zero-conversion
+`Spend` separately and report it in the Microsoft account's currency.
+
 ### 7. Score and report
 
 ```
 Google Ads Audit — [Account Name]
 Health Score: X/100  ·  30-day spend: [X]  ·  Conversions: [X]  ·  CPA: [X]
+[Microsoft Ads, if connected: spend · conversions · CPA, own currency, not scored]
+[Ads-reported vs store/GA4 revenue ratio, if a store or GA4 is connected]
 
 Score breakdown:
   Account structure ...... X/20
@@ -244,8 +357,19 @@ For every actionable issue, call `mcp__cogny__create_finding`:
 }
 ```
 
+Cloud uses `create_ticket` with the same content, fields mapped per section 2 of the routing guide.
+
+`estimated_impact_usd` is in USD. If `customer.currency_code` isn't USD, convert the monthly
+figure at a current rate and state it in the body ("SEK 18,400/mo ≈ $1,700 at 10.8 SEK/USD").
+Keep the account currency everywhere else in the report.
+
 Action types: `campaign_optimization`, `budget_adjustment`, `bidding_strategy`,
 `conversion_tracking`, `negative_keyword`, `account_structure`.
+
+## Recording findings
+
+Use `create_ticket` when the workspace has it (Cloud) and `create_finding` otherwise (Solo).
+The fields differ; see section 2 of `../marketing-engineer/references/mcp-routing.md`.
 
 ## Critical rules
 
@@ -259,4 +383,7 @@ Action types: `campaign_optimization`, `budget_adjustment`, `bidding_strategy`,
    wave at the `all_conversions` gap as if it implies missing primaries.
 3. **Quote real numbers**, never benchmarks alone. "CPA is $48" beats "CPA looks high."
 4. **One finding per issue**, each with a dollar figure. No vague advice.
-5. This skill **reads only**. It never pauses campaigns or changes budgets.
+5. This skill **reads only**. It never pauses campaigns or changes budgets. Write tools on
+   any platform are used only on the user's explicit request, and the skill asks first.
+6. **Platform numbers stay per platform.** Google, Microsoft and store figures are shown
+   side by side in their own currencies, never added together.
