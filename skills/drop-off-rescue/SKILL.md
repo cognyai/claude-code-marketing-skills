@@ -1,18 +1,127 @@
 ---
 name: drop-off-rescue
 description: Find contacts stalled at funnel stages (abandoned cart, signed-up-but-no-trial, trial-but-no-convert), draft stage-appropriate re-engagement emails, and schedule sends via your ESP — with dedupe so weekly reruns never double-send
-version: "1.0.0"
+version: "1.1.2"
+requires: cogny-mcp
 author: Cogny AI
-platforms: [klaviyo, mailchimp, rule, get-a-newsletter]
+platforms: [klaviyo, mailchimp, rule, get-a-newsletter, brevo, mailerlite, drip, salesforce-marketing-cloud, symplify, braze, shopify, woocommerce, stripe]
 user-invocable: true
 argument-hint: "[weekly|audit|free]"
 allowed-tools:
   # Cogny Cloud (aggregated) namespace
-  - mcp__cogny__klaviyo__*
-  - mcp__cogny__mailchimp__*
-  - mcp__cogny__rule__*
-  - mcp__cogny__get_a_newsletter__*
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Klaviyo__list_profiles
+  - mcp__cogny__mcp__Klaviyo__get_profile
+  - mcp__cogny__mcp__Klaviyo__list_lists
+  - mcp__cogny__mcp__Klaviyo__get_list
+  - mcp__cogny__mcp__Klaviyo__get_list_profiles
+  - mcp__cogny__mcp__Klaviyo__list_segments
+  - mcp__cogny__mcp__Klaviyo__get_segment
+  - mcp__cogny__mcp__Klaviyo__list_campaigns
+  - mcp__cogny__mcp__Klaviyo__get_campaign
+  - mcp__cogny__mcp__Klaviyo__get_campaign_message
+  - mcp__cogny__mcp__Klaviyo__get_campaign_values_report
+  - mcp__cogny__mcp__Klaviyo__list_flows
+  - mcp__cogny__mcp__Klaviyo__get_flow
+  - mcp__cogny__mcp__Klaviyo__list_metrics
+  - mcp__cogny__mcp__Klaviyo__get_metric
+  - mcp__cogny__mcp__Klaviyo__list_events
+  - mcp__cogny__mcp__Klaviyo__list_templates
+  - mcp__cogny__mcp__Klaviyo__get_account
+  - mcp__cogny__mcp__Mailchimp__tool_get_account_info
+  - mcp__cogny__mcp__Mailchimp__tool_list_campaigns
+  - mcp__cogny__mcp__Mailchimp__tool_get_campaign
+  - mcp__cogny__mcp__Mailchimp__tool_get_campaign_content
+  - mcp__cogny__mcp__Mailchimp__tool_list_audiences
+  - mcp__cogny__mcp__Mailchimp__tool_get_audience
+  - mcp__cogny__mcp__Mailchimp__tool_list_members
+  - mcp__cogny__mcp__Mailchimp__tool_get_member
+  - mcp__cogny__mcp__Mailchimp__tool_get_member_tags
+  - mcp__cogny__mcp__Mailchimp__tool_list_segments
+  - mcp__cogny__mcp__Mailchimp__tool_get_segment
+  - mcp__cogny__mcp__Mailchimp__tool_list_templates
+  - mcp__cogny__mcp__Mailchimp__tool_get_template
+  - mcp__cogny__mcp__Mailchimp__tool_list_reports
+  - mcp__cogny__mcp__Mailchimp__tool_get_report
+  - mcp__cogny__mcp__Mailchimp__tool_get_report_click_details
+  - mcp__cogny__mcp__Mailchimp__tool_get_report_open_details
+  - mcp__cogny__mcp__Mailchimp__tool_get_report_unsubscribed
+  - mcp__cogny__mcp__Mailchimp__tool_list_automations
+  - mcp__cogny__mcp__Mailchimp__tool_get_automation
+  - mcp__cogny__mcp__Rule__tool_list_subscribers
+  - mcp__cogny__mcp__Rule__tool_get_subscriber
+  - mcp__cogny__mcp__Rule__tool_get_subscriber_fields
+  - mcp__cogny__mcp__Rule__tool_list_subscriber_tags
+  - mcp__cogny__mcp__Rule__tool_list_tags
+  - mcp__cogny__mcp__Rule__tool_get_tag
+  - mcp__cogny__mcp__Rule__tool_list_campaigns
+  - mcp__cogny__mcp__Rule__tool_get_campaign
+  - mcp__cogny__mcp__Rule__tool_get_campaign_statistics
+  - mcp__cogny__mcp__Rule__tool_list_templates
+  - mcp__cogny__mcp__Rule__tool_get_template
+  - mcp__cogny__mcp__Rule__tool_list_segments
+  - mcp__cogny__mcp__Rule__tool_list_customizations
+  - mcp__cogny__mcp__Rule__tool_get_customization
+  - mcp__cogny__mcp__Rule__tool_list_suppressions
+  - mcp__cogny__mcp__Rule__tool_list_preference_groups
+  - mcp__cogny__mcp__Rule__tool_get_subscriber_preferences
+  - mcp__cogny__mcp__Rule__tool_list_journeys
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_contacts
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_contact
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_lists
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_list
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_drafts
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_draft
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_sent
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_sent
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_scheduled
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_reports
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_bounces
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_opens
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_opens_aggregated
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_have_not_opened
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_clicks
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_link_clicks
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_report_unsubscriptions
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_attributes
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_subscriptions
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_list_senders
+  - mcp__cogny__mcp__Get_a_Newsletter__tool_get_sender
+  # Newer ESPs and stores: read tools only (tag writes and sends ask first)
+  - mcp__cogny__mcp__Brevo__list_contacts
+  - mcp__cogny__mcp__Brevo__get_contact
+  - mcp__cogny__mcp__Brevo__list_contact_lists
+  - mcp__cogny__mcp__Brevo__get_list
+  - mcp__cogny__mcp__Brevo__list_contact_attributes
+  - mcp__cogny__mcp__Brevo__list_email_campaigns
+  - mcp__cogny__mcp__MailerLite__list_subscribers
+  - mcp__cogny__mcp__MailerLite__get_subscriber
+  - mcp__cogny__mcp__MailerLite__list_groups
+  - mcp__cogny__mcp__MailerLite__get_group
+  - mcp__cogny__mcp__MailerLite__list_campaigns
+  - mcp__cogny__mcp__Drip__list_subscribers
+  - mcp__cogny__mcp__Drip__get_subscriber
+  - mcp__cogny__mcp__Drip__list_tags
+  - mcp__cogny__mcp__Drip__list_workflows
+  - mcp__cogny__mcp__Drip__list_campaigns
+  - mcp__cogny__mcp__Drip__list_event_actions
+  - mcp__cogny__mcp__Salesforce_Marketing_Cloud__list_journeys
+  - mcp__cogny__mcp__Salesforce_Marketing_Cloud__list_data_extensions
+  - mcp__cogny__mcp__Salesforce_Marketing_Cloud__get_data_extension_fields
+  - mcp__cogny__mcp__Salesforce_Marketing_Cloud__get_data_extension_rows
+  - mcp__cogny__mcp__Symplify__list_journeys
+  - mcp__cogny__mcp__Braze__braze_list_canvases
+  - mcp__cogny__mcp__Braze__braze_list_segments
+  - mcp__cogny__mcp__Braze__braze_get_segment_analytics
+  - mcp__cogny__mcp__Shopify__tool_list_abandoned_checkouts
+  - mcp__cogny__mcp__Shopify__tool_list_orders
+  - mcp__cogny__mcp__Shopify__tool_list_customers
+  - mcp__cogny__mcp__WooCommerce__list_orders
+  - mcp__cogny__mcp__Stripe__stripe_api_read
+  - mcp__cogny__list_integrations
   - mcp__cogny__create_finding
+  - mcp__cogny__create_ticket
   - mcp__cogny__write_context_node
   - mcp__cogny__read_context_node
   # Cogny Solo / Lite (per-ESP direct) namespace
@@ -46,6 +155,49 @@ Push stalled funnel contacts to the next step. This skill finds people who signe
 
 Designed to be scheduled weekly via `/loop` or `/schedule`. On reruns, already-nudged contacts are skipped; newly-stalled contacts are picked up; contacts that progressed get celebrated in the output.
 
+## Works with
+
+| ESP (Prefix) | Read stage cohort | Write stage / rescue state (asks first) | Send / schedule (asks first) | Flow-conflict check |
+|--------------|-------------------|------------------------------------------|------------------------------|---------------------|
+| Klaviyo (`Klaviyo`) | `list_profiles`, `get_segment` | `update_profile` | `create_campaign` | `list_flows` |
+| Mailchimp (`Mailchimp`) | `tool_list_members` (no tag filter: filter on each member's tags client-side, or use the tag's static segment from `tool_list_segments`), `tool_get_member_tags` | `tool_update_member_tags` | `tool_create_campaign` → `tool_schedule_campaign` | `tool_list_automations` |
+| Rule (`Rule`) | `tool_list_subscribers`, `tool_list_subscriber_tags` | `tool_add_subscriber_tags`, `tool_remove_subscriber_tag` | `tool_schedule_campaign` | `tool_list_journeys` |
+| Get a Newsletter (`Get_a_Newsletter`) | `tool_list_contacts` + `tool_get_contact` (no tags: stage = list membership or a `STAGE` attribute) | `tool_update_contact` (`attributes`; `lists` only with the full list set, see Layer 1), `tool_create_attribute` / `tool_create_list` for setup | `tool_send_draft` (`time_to_send`) | — (no flows) |
+| Brevo (`Brevo`) | `get_list` / `list_contacts` (no tags: stage = list membership or a contact attribute) | `add_contacts_to_list`, `update_contact` (`attributes`) | `create_email_campaign` (`recipients`, `scheduled_at`) | not exposed — ask the user |
+| MailerLite (`MailerLite`) | `list_groups` → `list_subscribers` + `get_subscriber` (groups per subscriber) | `assign_subscriber_to_group` (groups stand in for tags) | `create_campaign` → `schedule_campaign` | not exposed — ask the user |
+| Drip (`Drip`) | `list_subscribers` (`tags: "stage:<slug>"`) — native tag filter | `apply_tag`, `remove_tag` | `subscribe_to_campaign` / `start_subscriber_on_workflow` | `list_workflows` |
+| Salesforce Marketing Cloud (`Salesforce_Marketing_Cloud`) | `get_data_extension_rows` (`row_filter`) on a stage data extension | none in the MCP | none — draft-only | `list_journeys` |
+| Symplify (`Symplify`) | no bulk contact read | none | none — draft-only | `list_journeys` |
+| Braze (`Braze`) | `braze_list_segments` → `braze_get_segment_analytics` (cohort **size** only, no members) | none | none — draft-only | `braze_list_canvases` |
+
+**Store data for e-commerce stages (enhanced when connected, works with any ESP):**
+
+| Stage | Shopify (`Shopify`) | WooCommerce (`WooCommerce`) |
+|-------|---------------------|-----------------------------|
+| `checkout-abandoned` / `cart-abandoned` | `tool_list_abandoned_checkouts` (email, `total_price`, line items, `abandonedCheckoutUrl`), minus emails with a later order in `tool_list_orders` | `list_orders` (`status: "pending"` or `"failed"`, `after`) as a proxy |
+| `post-first-order-silent` | `tool_list_customers` (`numberOfOrders` = 1) + `tool_list_orders` for the order date | `list_orders` grouped by billing email |
+
+**SaaS stages from Stripe (enhanced when connected):** `stripe_api_read` `GetSubscriptions` (`status: "all"`) gives `trialing` subscriptions (for `trial-started-inactive`) and trials that ended `canceled` or `incomplete_expired` without a paid invoice (for `no-subscription` / `trial-ended-no-convert`); `GetInvoices` (`status: "paid"`) and `GetRefunds` give the paid-plan value used for impact sizing. For SaaS, Stripe is the revenue source wherever this skill uses store orders.
+
+Store (or Stripe) data finds the cohort; the ESP still holds consent and the rescue tags. Join on lowercased email and drop anyone the ESP marks unsubscribed. If Stripe's `email`/`customer_email` comes back `[REDACTED]` (a restricted key), skip the Stripe join and say so ("Stripe emails redacted by the restricted key: SaaS stages can't be matched to ESP contacts"); use Stripe only for impact sizing. Page Stripe with `limit` 20–25 and `starting_after` (a 100-row page is ~370KB).
+
+## Step 0 — Is Cogny connected?
+
+If no `mcp__cogny__*` tools exist (no `list_integrations`, no `cogny_status`) and no Solo per-ESP tools (`mcp__<esp>__*`) either, print this, then run free mode (Step 9):
+
+```
+Drop-off Rescue needs your marketing data through Cogny's MCP gateway to find stalled contacts and schedule sends.
+
+1. Sign up at https://cogny.com and connect your ESP (Klaviyo, Mailchimp, Rule, Get a Newsletter, Brevo, MailerLite or Drip); Shopify, WooCommerce or Stripe adds cart and trial stages.
+2. Add Cogny to .mcp.json in your project:
+   {"mcpServers": {"cogny": {"type": "http", "url": "https://app.cogny.com/mcp"}}}
+3. Restart Claude Code; it opens a browser for the OAuth login on first use.
+
+Without Cogny you can still: paste a CSV of stalled contacts (email,stage,stalled_since,consent) and get draft-only emails you send yourself (free mode).
+```
+
+If Cogny is connected but no ESP is, say "connect your ESP in Cogny" and offer free mode.
+
 ## Step 1 — Mode detection
 
 Probe both MCP namespaces:
@@ -56,7 +208,15 @@ Probe both MCP namespaces:
 
 If the argument is `free`, force free mode regardless of what's connected.
 
-If multiple ESPs are connected, ask the user which one to run against (or offer to run all and cross-dedupe in cloud mode).
+If multiple ESPs are connected, ask the user which one to run against (or offer to run all and cross-dedupe in cloud mode). On Cloud, `mcp__cogny__list_integrations` lists them; name any unhealthy integration as broken.
+
+**Health check:** `health_status` misses revoked tokens, so make one cheap read per integration before relying on it (e.g. Mailchimp `tool_get_account_info`, Get a Newsletter `tool_list_senders`, Klaviyo `get_account`, Shopify `tool_list_orders` with a 1-day filter, Stripe `stripe_api_read` `GetSubscriptions` with `limit: 1`). A 401, Forbidden or scope error means 🔴 "reconnect <integration> in Cogny": name it, don't retry, and drop that source from this run (an ESP that fails means its stages run as drafts only).
+
+**Missing tool:** if a tool named here isn't exposed by the workspace, call `mcp__cogny__refresh_mcp_discovery` once, use the fallback named next to the tool for this run, mark that source ⚠ "needs reconnect", and tell the user to reconnect the Cogny MCP. Never loop on refresh. Get a Newsletter fallbacks: `tool_get_report_have_not_opened` → that report's list contacts minus the openers from `tool_get_report_opens`; `tool_get_report_link_clicks` → `tool_get_report_opens` (per-contact click counts) or `tool_get_report_clicks` (per-link totals); `tool_get_report_opens_aggregated` → the totals in `tool_get_report`. Mailchimp `tool_get_campaign_content` → `tool_get_campaign` for the headers, and ask the user for the body.
+
+**ESP connected but 0 sends in the window:** Layer 2 (send-history scan, Step 4) has nothing to read for that ESP; skip it with a one-line note ("Get a Newsletter: 0 sends in the last 35 days — send-history dedupe skipped") and rely on Layers 1 and 3.
+
+Brevo, MailerLite, Drip, Salesforce Marketing Cloud, Symplify and Braze are Cloud-namespace only. SFMC, Symplify and Braze have no write tools in the MCP, so they always run **audit + drafts**: dedupe relies on Layer 3 (context tree) and the user sends from the ESP.
 
 ## Step 2 — Canonical funnel stages
 
@@ -92,9 +252,15 @@ If the user describes a funnel with stages that don't map to these slugs, add ne
 | ESP | Read stage tag | Apply stage tag | Schedule/send |
 |-----|----------------|-----------------|---------------|
 | Klaviyo | `list_profiles` filtered by segment/property `stage` | `update_profile` (properties) | campaign create + schedule |
-| Mailchimp | `tool_list_members` filtered by tag | `tool_update_member` (tags) | campaign schedule |
-| Rule | `tool_list_subscribers` filtered by tag | `tool_add_tag_to_subscriber` | `tool_schedule_campaign` |
-| Get a Newsletter | `tool_list_contacts` filtered by tag | `tool_update_contact` (tag) | `tool_send_draft` with `time_to_send` |
+| Mailchimp | `tool_list_members` (no tag filter: page with `count`/`offset` and keep members whose tags include `stage:<slug>`, or count/target the tag's static segment from `tool_list_segments`) | `tool_update_member_tags` | campaign schedule |
+| Rule | `tool_list_subscribers` filtered by tag | `tool_add_subscriber_tags` | `tool_schedule_campaign` |
+| Get a Newsletter (no tags) | contacts on a `stage:<slug>` list (each contact's `lists`), or with a `STAGE` attribute (`tool_get_contact`) | `tool_update_contact` (`attributes: {"STAGE": "<slug>"}`) | `tool_send_draft` with `time_to_send` |
+| Brevo | `get_list` for a `stage:<slug>` list, or contacts with a `STAGE` attribute | `add_contacts_to_list` / `update_contact` (`attributes`) | `create_email_campaign` with `scheduled_at` |
+| MailerLite | subscribers in a `stage:<slug>` group | `assign_subscriber_to_group` | `create_campaign` → `schedule_campaign` |
+| Drip | `list_subscribers` with `tags` | `apply_tag` | `subscribe_to_campaign` (Email Series) or `start_subscriber_on_workflow` |
+| SFMC / Symplify / Braze | see Works with (read-only or size-only) | — | — (draft-only) |
+
+**Store-derived stages (any ESP, when Shopify or WooCommerce is connected and the stage tag is absent):** build `checkout-abandoned` / `cart-abandoned` from `tool_list_abandoned_checkouts` (last 7 days, excluding emails with a later order in `tool_list_orders`) and `post-first-order-silent` from `tool_list_customers`; on WooCommerce use `list_orders`. Offer (under the Step 7 gate) to write the stage tag back so the next run reads it directly. Drip accounts fed by a store integration may also have purchase events: check `list_event_actions`.
 
 **Klaviyo event-derived fallback (only when `stage:cart-abandoned` tag is absent):** query `list_events` with `metric="Added to Cart"` in the last 7 days, exclude profiles who have a subsequent `Placed Order`. Write the `stage:cart-abandoned` tag back via `update_profile` so the next run is consistent.
 
@@ -117,7 +283,7 @@ On every successful send, write three tags to the recipient:
 - `rescue-last-stage:<slug>` — overwritten; always reflects the latest stage nudged (enables stage-advancement detection in one read)
 - `rescue-last-sent:<YYYY-MM-DD>` — overwritten; used for cooldown math and the global 7-day anti-fatigue rule
 
-Why tag-based primary: works in solo mode without a context tree, survives cross-machine usage, all four ESPs expose a tag-write tool, debuggable by a human in the ESP UI, bulk-clearable if something goes wrong.
+Why tag-based primary: works in solo mode without a context tree, survives cross-machine usage, debuggable by a human in the ESP UI, bulk-clearable if something goes wrong. Klaviyo, Mailchimp, Rule and Drip have tag writes. **Get a Newsletter has no tags** (`tool_list_attributes` returns attributes only and `tool_update_contact` takes `attributes` and `lists`, nothing else): store `RESCUE_LAST_STAGE` and `RESCUE_LAST_SENT` as contact attributes (create them once with `tool_create_attribute` if `tool_list_attributes` lacks them) and record `rescue-sent:<slug>:<week>` as one list per rescue week (`tool_create_list`). ⚠ Per the tool's own docstring, passing `lists` to `tool_update_contact` **unsubscribes the contact from every list not included**: to add a rescue-week list, send the contact's current lists (from `tool_get_contact`) plus the new one, or omit `lists` and write attributes only. Brevo has no tags either: use contact attributes (`RESCUE_LAST_STAGE`, `RESCUE_LAST_SENT`, created by the user if `list_contact_attributes` lacks them) and one list per `rescue-sent:<slug>:<week>`. MailerLite uses groups with the same names. SFMC, Symplify and Braze have no writes, so Layer 3 is their only dedupe.
 
 ### Layer 2 — ESP campaign-name convention (fallback)
 
@@ -240,9 +406,9 @@ Reply with:
   cancel         → abort everything, no writes
 ```
 
-If the ESP lacks native scheduling (today: none of the four, but guard for future gaps), return the draft plus a suggested `at`/cron string the user can run themselves.
+If the ESP lacks scheduling in the MCP (today: Salesforce Marketing Cloud, Symplify and Braze have no write tools), return the draft plus the segment definition and a suggested send time the user sets up in the ESP.
 
-**Before scheduling, always check for flow conflicts:** read `list_flows` / `tool_list_automations` / `tool_list_journeys`. If a native flow already targets a segment equivalent to the current stage, warn:
+**Before scheduling, always check for flow conflicts:** read `list_flows` / `tool_list_automations` / `tool_list_journeys` / Drip `list_workflows` / SFMC `list_journeys` / Symplify `list_journeys` / Braze `braze_list_canvases`. Brevo and MailerLite don't expose automations: ask the user whether an abandoned-cart or onboarding automation already runs. If a native flow already targets a segment equivalent to the current stage, warn:
 
 ```
 ⚠️  Heads up — a native <ESP> flow already targets this segment:
@@ -256,7 +422,7 @@ If the ESP lacks native scheduling (today: none of the four, but guard for futur
     Which?
 ```
 
-Get a Newsletter has no flow object, so this check is skipped there.
+Get a Newsletter has no flow object, so this check is skipped there. If Shopify's own abandoned-checkout emails are on, treat them as a native flow for `checkout-abandoned`.
 
 ## Step 8 — Consent & suppression guards
 
@@ -341,7 +507,7 @@ One such block per stage with eligible contacts. Stages with zero eligible (ever
 
 ## Step 11 — Findings (cloud mode)
 
-For each stage with eligible contacts, write a finding:
+For each stage with eligible contacts, record a finding. On Cloud call `create_ticket` first (fields mapped per section 2 of the routing guide); on Solo call `create_finding`:
 
 ```json
 {
@@ -354,7 +520,7 @@ For each stage with eligible contacts, write a finding:
 }
 ```
 
-`estimated_impact_usd` is computed only when Klaviyo's `list_events` gives AOV × realistic reactivation rate (5–10% for cart stages, 2–5% for SaaS stages). For other ESPs without purchase data, set to `null` and note "engagement uplift only."
+`estimated_impact_usd` is computed only from real order data × a realistic reactivation rate (5–10% for cart stages, 2–5% for SaaS stages): Shopify abandoned-checkout `total_price` (cart stages), AOV from Shopify/WooCommerce orders, Klaviyo's `list_events`, or (SaaS stages) the paid-plan value from Stripe `GetInvoices`. Name the source and convert from the store currency only if the user gives a rate. Without order data, set to `null` and note "engagement uplift only."
 
 Persist the weekly summary under `insights/drop-off-rescue/<YYYY>-W<WW>/summary` so next run can diff.
 
@@ -376,7 +542,8 @@ Cleanup: reply "clear weeks before 2026-W14" to bulk-remove old rescue-sent:* ta
 
 ## Notes
 
-- **Only Klaviyo exposes cart/order events** through the cogny-mcp-proxy. `cart-abandoned` / `checkout-abandoned` / `post-first-order-silent` stages on Mailchimp, Rule, or Get a Newsletter rely entirely on tag-driven stage resolution — the user must be tagging contacts from their own e-com data.
+- **Cart/order data comes from Klaviyo events or a connected store** (SaaS trial and subscription data from Stripe). Shopify (`tool_list_abandoned_checkouts`, `tool_list_orders`) and WooCommerce (`list_orders`) resolve `cart-abandoned` / `checkout-abandoned` / `post-first-order-silent` for any ESP. Without either, those stages rely entirely on tag-driven stage resolution — the user must be tagging contacts from their own e-com data.
+- **Several ESPs connected:** report each ESP's cohort and sends separately; the cross-ESP dedupe (Layer 3) prevents double nudges but counts are never added across ESPs.
 - **Get a Newsletter has no flow/automation object.** The Step 7 flow-conflict check is skipped. Rescue is always scheduled as individual drafts via `tool_send_draft` with `time_to_send`.
 - **Klaviyo event-derived `cart-abandoned` is soft** — once the skill synthesises it from `list_events`, it immediately writes the tag via `update_profile` so the next run reads it from the primary signal.
 - **Don't conflict with native flows.** If the user already runs a Klaviyo abandoned-cart flow, defer to it — the rescue skill is for stages where a native flow doesn't exist or isn't effective.
@@ -392,3 +559,8 @@ apply rescue state tags, and schedule sends directly — all gated by your appro
 
 → https://cogny.com
 ────────────────────────────────────────────────
+
+## Recording findings
+
+Use `create_ticket` when the workspace has it (Cloud) and `create_finding` otherwise (Solo).
+The fields differ; see section 2 of `../marketing-engineer/references/mcp-routing.md`.

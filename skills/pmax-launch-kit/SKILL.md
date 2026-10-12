@@ -1,7 +1,7 @@
 ---
 name: pmax-launch-kit
 description: Build a complete Performance Max campaign from a brand URL — asset group copy, search themes, audience signals, image/video shot list, settings — ready to paste into Google Ads
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -12,6 +12,19 @@ allowed-tools:
   - Bash
   - Read
   - Write
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__Google_Ads__tool_generate_keyword_ideas
+  - mcp__cogny__mcp__Google_Ads__tool_list_accessible_accounts
+  - mcp__cogny__mcp__Google_Ads__tool_list_audience_segments
+  - mcp__cogny__mcp__Semrush__phrase_related
+  - mcp__cogny__mcp__Semrush__domain_paid_keywords
+  - mcp__cogny__mcp__Ahrefs__keywords_explorer
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_audiences
+  - mcp__cogny__mcp__Shopify__tool_list_orders
+  - mcp__cogny__mcp__WooCommerce__get_top_sellers_report
+  - mcp__cogny__mcp__GrowthBook__list_experiments
+  - mcp__cogny__mcp__GrowthBook__get_experiment_results
 ---
 
 # Performance Max Launch Kit
@@ -25,6 +38,18 @@ this works entirely from the public website.
 
 `/pmax-launch-kit cogny.com` — build a launch kit for that brand
 `/pmax-launch-kit example.com/product-x` — focus the kit on one product or category
+
+## Works with
+
+Runs with zero accounts. If a Cogny workspace is connected (`list_integrations`), these
+sharpen the kit:
+
+| Job | Without accounts | Enhanced when connected (primary first) |
+|-----|------------------|------------------------------------------|
+| Search themes | Website + `WebSearch` | Google Ads `tool_generate_keyword_ideas` · Semrush `phrase_related`, `domain_paid_keywords` · Ahrefs `keywords_explorer` |
+| Asset group split | Site navigation | Shopify `tool_list_orders` or WooCommerce `get_top_sellers_report` (what actually sells) |
+| Audience signals | Generic segment advice | GA4 `tool_list_audiences` (existing first-party lists) · Google Ads `tool_list_audience_segments` |
+| Copy angles | Site and reviews | GrowthBook `list_experiments`, `get_experiment_results` (headlines/offers already tested) |
 
 ## Steps
 
@@ -43,12 +68,25 @@ this works entirely from the public website.
 If the site is thin or unreachable, ask the user for a one-paragraph description
 rather than inventing facts.
 
+**Enhanced when connected:** if GrowthBook is connected, `list_experiments` and
+`get_experiment_results` (`experiment_id`) for past landing-page or offer tests. Lead the
+copy with the winning angle and don't re-propose a losing one; cite the experiment.
+
 ### 2. Decide the asset group structure
 
 One asset group per distinct audience or product line. For most brands start with
 1–2 asset groups. Name each by the theme it targets (e.g. "Solo founders",
-"Agencies"). Each asset group gets its own copy, themes, and signal — never reuse one
+"Agencies"). With a store connected, base the split on the last 90 days' top sellers
+(Shopify `tool_list_orders` with `query_filter: "created_at:>=YYYY-MM-DD financial_status:paid"`,
+or WooCommerce `get_top_sellers_report` with `date_min`, `date_max`), not on site navigation. Each asset group gets its own copy, themes, and signal — never reuse one
 set of copy across different audiences.
+
+**Different conversion goals → separate campaigns, not asset groups.** Conversion
+goals are set per campaign (account-default or campaign-specific), never per asset
+group, and budget and bidding are shared across a campaign's asset groups. If one
+audience should drive purchases and another demo requests or leads, or the two need
+different tROAS/tCPA targets, propose one PMax campaign per goal, each with its own
+asset groups.
 
 ### 3. Write the asset group copy
 
@@ -70,12 +108,19 @@ now, Get a quote).
 
 Show each list in a table with a character count column so nothing is over the limit.
 
-### 4. Search themes — up to 25
+### 4. Search themes — up to 50
 
-List up to 25 search themes per asset group: the queries this audience actually types.
+List up to 50 search themes per asset group (Google Ads limit; aim for 15–25 strong ones rather than padding to 50): the queries this audience actually types.
 Cover branded-adjacent, category, problem-phrased, and competitor-alternative themes.
 Do **not** include the brand's own name (PMax already captures brand search; a brand
 theme just inflates cannibalization). Mark any theme that risks pulling junk traffic.
+
+**Enhanced when connected:** validate themes with real demand. Google Ads
+`tool_generate_keyword_ideas` (`customer_id`, `page_url` or `seed_keywords`,
+`geo_target_ids`); else Semrush `phrase_related` (`phrase`, `database`) or Ahrefs
+`keywords_explorer` (`keywords`, `country`). Semrush `domain_paid_keywords` (`domain`) on a
+competitor shows what they already pay for. Add a volume column and name its source;
+volumes differ between tools.
 
 ### 5. Audience signals
 
@@ -87,6 +132,10 @@ Recommend a signal per asset group — signals speed up learning, they don't res
 
 Be specific: name the in-market / affinity segments and the kind of custom segment to
 build.
+
+**Enhanced when connected:** GA4 `tool_list_audiences` (`property_id`) and Google Ads
+`tool_list_audience_segments` show which first-party lists already exist; recommend those
+by name instead of "build a converters list".
 
 ### 6. Image & video shot list
 
@@ -130,7 +179,7 @@ Headlines (15)         | table with char counts
 Long headlines (5)     | table with char counts
 Descriptions (5)       | table with char counts
 Business name: ...
-Search themes (≤25): ...
+Search themes (≤50): ...
 Audience signal: ...
 Image shot list: ...
 Video script outline: ...
@@ -152,5 +201,8 @@ End with a 3-step "what to do next" so a non-expert can actually launch it.
 3. **Never put the brand name in search themes.**
 4. **Always recommend a video asset and a brand exclusion list** — the two things
    most launches skip.
-5. This is a build kit, not an audit. To review a *live* PMax campaign, use
+5. **Build, don't launch.** With Google Ads connected, the kit can be created live
+   (`tool_create_campaign`, `tool_create_asset_group`, created paused) only if the user
+   asks, and the skill asks first.
+6. This is a build kit, not an audit. To review a *live* PMax campaign, use
    `/pmax-audit` (requires Cogny MCP).

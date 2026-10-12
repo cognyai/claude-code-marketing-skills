@@ -1,9 +1,9 @@
 ---
 name: reddit-launch-video
 description: Produce a Reddit-native 1:1 or 4:5 launch video using HyperFrames. Idiomatic Reddit feel — text-first, low-polish, sound-off, subreddit-aware. Optionally hand off to Reddit Ads to launch as a promoted post targeted to specific subreddits.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
-platforms: [reddit-ads, hyperframes]
+platforms: [reddit-ads, x-organic, hyperframes]
 user-invocable: true
 argument-hint: "<product URL or short brief>"
 allowed-tools:
@@ -14,12 +14,18 @@ allowed-tools:
   - Write
   - Edit
   # Cogny MCP context tree — richer product context than public scraping
+  - mcp__cogny__refresh_mcp_discovery
   - mcp__cogny__get_context_tree_overview
   - mcp__cogny__browse_context_tree
   - mcp__cogny__read_context_node
   - mcp__cogny__search_context
-  # Optional handoff to Reddit Ads when the user wants to publish as a promoted post
-  - mcp__cogny__reddit_ads__*
+  # Optional handoff (read tools only; create/post tools ask first)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__Reddit_Ads__tool_list_ad_accounts
+  - mcp__cogny__mcp__Reddit_Ads__tool_get_targeting_options
+  - mcp__cogny__mcp__Reddit_Ads__tool_list_funding_instruments
+  - mcp__cogny__mcp__Reddit_Ads__tool_get_ads
+  - mcp__cogny__mcp__Reddit_Ads__tool_list_promotable_posts
 ---
 
 # Reddit Launch Video
@@ -27,6 +33,15 @@ allowed-tools:
 Produce a Reddit-native launch video using [HyperFrames](https://hyperframes.heygen.com).
 
 Reddit is the platform where polish *hurts* you. Ads that look like ads get downvoted, hidden, or drowned in sarcastic comments. This skill is built for the opposite — text-first, screenshot-heavy, sound-off, conversational. The closer the video looks to a normal Reddit post, the better it performs.
+
+## Works with
+
+Making the video needs no accounts. Publishing is optional, and every publish call asks first.
+
+| Job | Primary | Also answers it | What differs |
+|-----|---------|-----------------|--------------|
+| Run as a promoted post | Reddit Ads (all `PAUSED`) | — | The MCP can't upload video: upload the post in Reddit Ads Manager, then attach it by id |
+| Post organically | Reddit (by hand, in the right subreddit) | X Organic | Same 1:1 or 4:5 MP4 works on X; confirm the text first, it posts at once |
 
 ## Usage
 
@@ -113,9 +128,11 @@ Hand the beat sheet back to the user. **Wait for confirmation.**
 ### 4. Scaffold the HyperFrames project
 
 ```bash
-npx -y hyperframes@latest init <product-slug>-reddit --yes
+npx -y hyperframes@latest init <product-slug>-reddit --non-interactive --resolution square
 cd <product-slug>-reddit
 ```
+
+There is no `--yes` flag; `--non-interactive` disables the prompts. For the 4:5 variant (step 5) there is no preset: keep `square` and set the root's `data-height` to 1350.
 
 Read the generated `CLAUDE.md` once for the framework rules.
 
@@ -137,6 +154,14 @@ Reddit-specific styling rules:
 
 ### 6. Lint & render
 
+Check dependencies first:
+
+```bash
+npx hyperframes doctor
+```
+
+If it reports FFmpeg missing, stop before rendering and tell the user to install it (`brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian/Ubuntu). Meanwhile, `npx hyperframes snapshot` captures key frames as PNGs without FFmpeg, so they can review the cards.
+
 ```bash
 npx hyperframes lint
 npx hyperframes render --output launch.mp4
@@ -153,29 +178,36 @@ npx hyperframes render --output launch.mp4
 
 If the user wants to run this as a paid promoted post, Reddit's killer differentiator is **subreddit targeting**. Use it.
 
+After the user approves each write:
+
 ```
-reddit_ads__tool_list_ad_accounts
-reddit_ads__tool_get_targeting_options(account_id, type='subreddits', query='<topic>')
-reddit_ads__tool_create_campaign(...)             # objective: CLICKS or CONVERSIONS, status: PAUSED
-reddit_ads__tool_create_ad_group(
-  account_id, campaign_id, name,
-  goal_type='DAILY_SPEND',
-  goal_value=<micros>,                            # 1_000_000 = $1.00
-  target_subreddits=['marketing', 'SaaS', 'Entrepreneur']
+mcp__cogny__mcp__Reddit_Ads__tool_list_ad_accounts                           # note currency
+mcp__cogny__mcp__Reddit_Ads__tool_get_targeting_options(targeting_type: "subreddits", query: "<topic>")
+mcp__cogny__mcp__Reddit_Ads__tool_list_funding_instruments(ad_account_id)
+mcp__cogny__mcp__Reddit_Ads__tool_create_campaign(ad_account_id, name, objective: "CLICKS" | "CONVERSIONS" | "VIDEO_VIEWABLE_IMPRESSIONS", funding_instrument_id, status: "PAUSED")
+mcp__cogny__mcp__Reddit_Ads__tool_create_ad_group(
+  ad_account_id, campaign_id, name,
+  goal_type: "DAILY_SPEND",
+  goal_value: <micros>,                            # 1_000_000 = 1.00 in account currency
+  target_subreddits: ["marketing", "SaaS", "Entrepreneur"],
+  status: "PAUSED"
 )
-# Reddit ads wrap an existing post:
-reddit_ads__tool_create_post(title='...', url='https://...')   # returns t3_xxx
-reddit_ads__tool_create_ad(account_id, ad_group_id, name, post_id='t3_xxx')
+# Reddit ads wrap an existing post. For a video, upload launch.mp4 as a post in Reddit Ads Manager,
+# then find its t3_ id (profile_id comes from any existing ad in tool_get_ads):
+mcp__cogny__mcp__Reddit_Ads__tool_list_promotable_posts(profile_id)
+# For a link post instead, the MCP can create it:
+mcp__cogny__mcp__Reddit_Ads__tool_create_post(title: "...", url: "https://...")   # returns t3_xxx
+mcp__cogny__mcp__Reddit_Ads__tool_create_ad(ad_account_id, ad_group_id, name, post_id: "t3_xxx", status: "PAUSED")
 ```
 
 Notes:
 
-- All amounts are in **micros** (1,000,000 = $1.00). Don't forget to multiply.
+- All amounts are in **micros** of the account currency (1,000,000 = 1.00). Don't forget to multiply.
 - Status is `PAUSED` by default — leave it that way and let the user activate manually after reviewing.
 - Reddit charges per click/impression — set a low daily cap (~$10/day) for the first run.
 - The MCP cannot upload video creatives directly; you'll need to upload `launch.mp4` via the Reddit Ads UI, then attach the post.
 
-For organic posting: hand the user `launch.mp4` and remind them Reddit auto-detects "promotional" videos — the more it looks like a regular post, the further it travels.
+For organic posting: hand the user `launch.mp4` and remind them Reddit auto-detects "promotional" videos — the more it looks like a regular post, the further it travels. If X Organic is connected and the MP4 is at a public URL (on Cloud, `mcp__cogny__mcp__cogny-image-gen__tool_request_upload_url`), offer `mcp__cogny__mcp__X_Organic__tool_upload_media(file_url)` then `tool_create_post(text, media_ids)`; it posts publicly at once, so confirm the text first.
 
 ## Output format
 

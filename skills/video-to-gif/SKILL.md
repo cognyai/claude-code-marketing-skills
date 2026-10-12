@@ -1,7 +1,7 @@
 ---
 name: video-to-gif
 description: Convert an MP4 (e.g. a HyperFrames render or a screen recording) to a high-quality GIF using FFmpeg's two-pass palette method. Picks the right preset for the target surface — Slack/DMs/Twitter/email/Reddit/GitHub — so you don't ship a 40MB GIF to a 5MB inbox.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: [ffmpeg]
 user-invocable: true
@@ -17,6 +17,15 @@ allowed-tools:
 Convert a video (MP4, MOV, WebM) to a GIF that's **actually small** and **actually looks good** on the surface you're posting to. Pairs naturally with `/tiktok-launch-video`, `/reddit-launch-video`, and `/linkedin-launch-video` for sharing renders in places where MP4 isn't supported (Slack threads, X cards, GitHub READMEs, transactional emails).
 
 GIF is a terrible video format — but it's everywhere, so we use FFmpeg's two-pass `palettegen` / `paletteuse` flow to make it look as good as the format allows.
+
+## Works with
+
+Runs locally on FFmpeg with zero accounts. One optional hand-off:
+
+| Job | Primary | Also answers it | What differs |
+|-----|---------|-----------------|--------------|
+| Make the GIF | FFmpeg (local) | — | Always available |
+| Post it to X (enhanced when connected) | X Organic `tool_upload_media` + `tool_create_post` | — | Asks first; needs the GIF at a public URL and ≤ 15 MB |
 
 ## Usage
 
@@ -100,6 +109,8 @@ Notes on the filter chain:
 - `dither=floyd_steinberg` is the best default. For UI / sharp edges with no gradients, try `dither=bayer:bayer_scale=3` instead — slightly larger files but no dither noise on flat colors.
 - `-loop 0` = infinite loop. Use `-loop 1` to play once. (For Slack and Twitter, infinite loop is what users expect.)
 
+**Alternative for HyperFrames sources:** if the input is still a HyperFrames project (not just its MP4), you can render the GIF straight from the composition, skipping the MP4 step: `npx hyperframes render --format gif --fps 15 --gif-loop 0 --output out.gif` from the project directory (`--fps 15` is HyperFrames' recommended GIF rate; it still needs FFmpeg). It outputs at the composition's own size (its `--resolution` only scales up), so when the preset in step 2 is narrower than the composition, use the MP4 + palette pipeline below instead. Either way, check the cap as in step 4.
+
 ### 4. Render and verify
 
 Run the command. Then verify:
@@ -142,6 +153,8 @@ Print:
 2. Final size on disk
 3. Final dimensions and frame count
 4. Surface cap status: "fits Slack (50MB) ✓" / "exceeds GitHub README cap (10MB), retry with fps=12 ✗"
+
+**Enhanced when connected (twitter preset only):** if the workspace has X Organic connected and the user wants it posted, get a public URL for the GIF (on Cloud, `mcp__cogny__mcp__cogny-image-gen__tool_request_upload_url` plus the returned curl; otherwise ask for a hosted link), then call `mcp__cogny__mcp__X_Organic__tool_upload_media(file_url, alt_text)` and `mcp__cogny__mcp__X_Organic__tool_create_post(text, media_ids)`. Both ask first, and the post goes live immediately, so show the exact text before posting.
 
 ## One-liners (for when the user knows what they want)
 

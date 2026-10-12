@@ -1,7 +1,7 @@
 ---
 name: non-commodity-content
 description: Interview the user for specific client stories, anecdotes, refusals, and real numbers — then turn them into non-commodity SEO content Google actually wants to rank. Kills generic listicle output at the source.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,6 +13,19 @@ allowed-tools:
   - Bash
   - Read
   - Write
+  # Optional, when Cogny MCP is connected (all read-only)
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__cogny-brave-search__tool_brave_search
+  - mcp__cogny__mcp__Ahrefs__serp_overview
+  - mcp__cogny__mcp__Semrush__phrase_organic
+  - mcp__cogny__mcp__Semrush__keyword_overview
+  - mcp__cogny__mcp__cogny-ai-visibility__tool_check_ai_visibility
+  - mcp__cogny__mcp__Google_Search_Console__tool_get_search_analytics
+  - mcp__cogny__mcp__WordPress__list_posts
+  - mcp__cogny__mcp__Ghost__list_posts
+  - mcp__cogny__mcp__Webflow__list_items
+  - mcp__cogny__mcp__Sanity__tool_search_documents
 ---
 
 # Non-Commodity Content
@@ -40,6 +53,17 @@ Examples:
 - `/non-commodity-content https://mybrand.com/blog/seo-tips`
 - `/non-commodity-content "10 tips for better email subject lines"`
 
+## Works with
+
+Runs with zero accounts (WebFetch/WebSearch + the interview). Providers only sharpen step 1; the interview is always the source of the content.
+
+| Job | Primary | Also answers it | No account |
+|-----|---------|-----------------|------------|
+| What currently ranks (the commodity consensus) | cogny-brave-search `tool_brave_search` | Ahrefs `serp_overview`, Semrush `phrase_organic` | WebSearch |
+| What AI answer engines say about the topic | cogny-ai-visibility `tool_check_ai_visibility` | — | — |
+| Queries the user's page already gets | Google Search Console `tool_get_search_analytics` | — | — |
+| Do we already have a post on this (cannibalization) | The connected CMS: WordPress / Ghost `list_posts`, Webflow `list_items`, Sanity `tool_search_documents` | — | WebSearch with `allowed_domains: ["<user's domain>"]` (WebSearch ignores `site:`) |
+
 ## Steps
 
 ### 1. Frame the commodity trap
@@ -50,6 +74,14 @@ Tell the user, in 3–5 lines:
 - The commodity version of this topic (the generic take competitors and AI are publishing)
 - Why it will lose to larger sites publishing the same generic take (domain authority beats generic content)
 - What we need from them to build the non-commodity version: a real story, number, refusal, or artifact from their actual work
+
+**Without accounts:** WebSearch the topic as a buyer would phrase it and quote the top 3-5 titles verbatim as the commodity version. To check whether the user already has a post on it, WebSearch the topic with the `allowed_domains` parameter set to their domain (WebSearch ignores a `site:` operator in the query).
+
+**Enhanced when connected:** If Cogny isn't connected, skip this and note what connecting adds (exact SERP owners from Ahrefs/Semrush, what AI answer engines say, existing CMS coverage, the queries the page already gets). Otherwise call `mcp__cogny__list_integrations` once and skip anything not connected:
+- **SERP:** `mcp__cogny__mcp__cogny-brave-search__tool_brave_search` (`query`, `country`), or `mcp__cogny__mcp__Ahrefs__serp_overview` (`keyword`, `country`) / `mcp__cogny__mcp__Semrush__phrase_organic` (`phrase`, `database`). Quote the top 3-5 titles verbatim as the commodity version. Ahrefs/Semrush also show which domains own the SERP, which makes the "larger sites will win" point concrete.
+- **AI answers:** `mcp__cogny__mcp__cogny-ai-visibility__tool_check_ai_visibility` with the topic phrased as a buyer would ask (`prompt`), the user's `brand` and `domain`, `engines: ["chatgpt", "perplexity"]` to limit credits. The answer is the commodity consensus; anything the user knows that contradicts it is a strong anchor for step 3.
+- **Existing coverage:** search the CMS (`mcp__cogny__mcp__WordPress__list_posts` with `search`, `mcp__cogny__mcp__Ghost__list_posts` with `filter`, `mcp__cogny__mcp__Sanity__tool_search_documents` with `search_text`). If a post exists, propose rewriting it rather than publishing a competitor to it.
+- **If the input is the user's URL:** `mcp__cogny__mcp__Google_Search_Console__tool_get_search_analytics` filtered to that page (`dimensions: ["query"]`) shows what readers actually searched. Use those questions to aim the interview.
 
 **Do not proceed to drafting yet.** The whole point of the skill is that the content doesn't exist until the user supplies the raw material.
 

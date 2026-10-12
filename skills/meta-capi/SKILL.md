@@ -1,7 +1,7 @@
 ---
 name: meta-capi
 description: Meta Conversions API (CAPI) Setup Reference — architecture, event types, customer information hashing, deduplication, implementation examples, AEM, and testing
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,13 +13,24 @@ allowed-tools:
   - Read
   - Write
   # Meta Ads tools (when connected via Cogny MCP)
-  - mcp__cogny__meta_ads__tool_get_pixels
-  - mcp__cogny__meta_ads__tool_get_insights
-  - mcp__cogny__meta_ads__tool_get_campaigns
-  - mcp__cogny__meta_ads__tool_get_ad_sets
-  - mcp__cogny__meta_ads__tool_get_ads
-  - mcp__cogny__meta_ads__tool_get_custom_audiences
-  - mcp__cogny__meta_ads__tool_list_ad_accounts
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Meta_Ads__tool_get_pixels
+  - mcp__cogny__mcp__Meta_Ads__tool_get_insights
+  - mcp__cogny__mcp__Meta_Ads__tool_get_campaigns
+  - mcp__cogny__mcp__Meta_Ads__tool_get_ad_sets
+  - mcp__cogny__mcp__Meta_Ads__tool_get_ads
+  - mcp__cogny__mcp__Meta_Ads__tool_get_custom_audiences
+  - mcp__cogny__mcp__Meta_Ads__tool_list_ad_accounts
+  # Coverage check and other platforms (when connected via Cogny MCP)
+  - mcp__cogny__list_integrations
+  - mcp__cogny__mcp__Shopify__tool_list_orders
+  - mcp__cogny__mcp__WooCommerce__get_sales_report
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_search_tags
+  - mcp__cogny__mcp__TikTok_Ads__tool_get_pixels
+  - mcp__cogny__mcp__Snapchat_Ads__tool_list_pixels
+  - mcp__cogny__mcp__Reddit_Ads__tool_get_conversion_events
+  - mcp__cogny__mcp__LinkedIn_Ads__tool_get_conversions
+  - mcp__cogny__mcp__X_Ads__tool_get_web_event_tags
 ---
 
 # Meta Conversions API (CAPI) Setup Reference
@@ -50,6 +61,20 @@ If the user provides a specific topic as an argument, focus on that area. Otherw
 
 If Cogny MCP tools are available, use them to inspect the user's actual Pixel configuration, ad account setup, and campaign data to provide contextual recommendations.
 
+## Works with
+
+Works with zero accounts (reference and code). When connected:
+
+| Job | Primary | Enhanced when connected |
+|-----|---------|-------------------------|
+| Which pixel to send to | Meta `tool_list_ad_accounts` → `tool_get_pixels` | — |
+| Is the browser Pixel already in GTM (and does it set `event_id`)? | — | GTM `tool_search_tags` (`search_term: "Meta"` / `"Facebook"`) |
+| CAPI coverage: Meta purchases vs real orders | Meta `tool_get_insights` | Shopify `tool_list_orders`, WooCommerce `get_sales_report` |
+| Same server-side pattern on other platforms | — | TikTok, Snapchat, Reddit, LinkedIn, X (see "Other Platforms' Server-Side APIs") |
+
+`tool_get_pixels` returns `source: ad_account` or `business_manager`; only the first is
+assigned to the account. CAPI to a Business-only pixel won't feed this account's ads.
+
 ---
 
 ## Architecture: Browser Pixel vs Server-Side CAPI
@@ -77,7 +102,7 @@ If Cogny MCP tools are available, use them to inspect the user's actual Pixel co
                         +----------+-------------------+
                         |  Your Server / GTM SS         |
                         |  - Conversions API endpoint   |
-                        |  - POST /v21.0/{pixel_id}/    |
+                        |  - POST /{ver}/{pixel_id}/    |
                         |    events                     |
                         |  - Hashes PII before sending  |
                         |  - Sends same event_id        |
@@ -252,9 +277,9 @@ Custom events cover actions not mapped to standard events. Used for audience bui
 
 **Naming rules:**
 
-- Max 40 characters
-- Lowercase letters, numbers, underscores only
-- Must not start with a number
+- Max 50 characters (a string; Meta's own example is `ShareDiscount`)
+- Use the exact same name, including case, in the Pixel (`fbq('trackCustom', ...)`) and the
+  CAPI `event_name`, or the two won't deduplicate. Pick one convention (e.g. snake_case)
 - Must not use reserved names (standard event names, `fb_`, `_fb` prefixes)
 - Examples: `qualified_lead`, `demo_booked`, `pricing_page_scroll_50`
 
@@ -280,7 +305,9 @@ Customer info parameters enable Meta to match events to user profiles. Higher ma
 
 ### Hashing Requirements
 
-All parameters except `external_id` **must** be SHA-256 hashed before sending via CAPI. The Pixel hashes automatically; CAPI does not.
+The PII parameters in the table above (`em`, `ph`, `fn`, `ln`, `ct`, `st`, `zp`, `country`, `db`, `ge`) **must** be SHA-256 hashed before sending via CAPI; `external_id` is hash-recommended. The Pixel hashes automatically; CAPI does not.
+
+**Never hash:** `client_ip_address`, `client_user_agent`, `fbp`, `fbc` (also `subscription_id`, `lead_id`, `fb_login_id`, `anon_id`). Send them raw; hashing them breaks matching.
 
 **Procedure:** Normalize (lowercase, trim) -> SHA-256 -> lowercase hex string (64 chars)
 
@@ -336,7 +363,12 @@ EMQ is a 1-10 score indicating how well Meta matched an event to a user profile.
 
 ### Direct API Integration
 
-**Endpoint:** `POST https://graph.facebook.com/v21.0/{pixel_id}/events`
+**Endpoint:** `POST https://graph.facebook.com/{API_VERSION}/{pixel_id}/events`
+
+**API version:** use the current Graph/Marketing API version from the
+[changelog](https://developers.facebook.com/docs/graph-api/changelog) (v26.0 as of
+2026-10). Don't copy an old pinned version from a tutorial: Marketing API versions expire
+and calls to them fail. Keep it in one constant and bump it when Meta deprecates it.
 
 **Auth:** `access_token` query parameter (System User token with `ads_management` permission)
 
@@ -347,6 +379,7 @@ const crypto = require('crypto');
 
 const PIXEL_ID = 'YOUR_PIXEL_ID';
 const ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
+const API_VERSION = 'v26.0'; // current version: developers.facebook.com/docs/graph-api/changelog
 
 function hash(value) {
   if (!value) return undefined;
@@ -382,7 +415,7 @@ async function sendEvent(eventName, eventData, userData, eventId = null) {
     }],
   };
 
-  const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
+  const url = `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -427,6 +460,7 @@ import hashlib, time, uuid, requests
 
 PIXEL_ID = 'YOUR_PIXEL_ID'
 ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN'
+API_VERSION = 'v26.0'  # current version: developers.facebook.com/docs/graph-api/changelog
 
 def hash_value(value):
     if not value:
@@ -434,7 +468,7 @@ def hash_value(value):
     return hashlib.sha256(str(value).strip().lower().encode('utf-8')).hexdigest()
 
 def send_event(event_name, event_data, user_data, event_id=None):
-    url = f'https://graph.facebook.com/v21.0/{PIXEL_ID}/events'
+    url = f'https://graph.facebook.com/{API_VERSION}/{PIXEL_ID}/events'
     payload = {
         'data': [{
             'event_name': event_name,
@@ -628,9 +662,51 @@ Events Manager > Data Sources > Your Pixel > **Event Match Quality**:
 | `2804002` | Invalid action_source | Use: website, app, phone_call, chat, email, in_store, other |
 | `803` | Permission denied | System user needs ads_management permission |
 
+### Coverage Check Against Real Orders (enhanced when connected)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+After CAPI goes live, compare 7 complete days:
+
+1. Meta: `tool_get_insights` (`ad_account_id`, `level: account`, `date_preset: last_7d`):
+   purchase `actions`.
+2. Store: Shopify `tool_list_orders` (`query_filter: "created_at:>=YYYY-MM-DD"`) or
+   WooCommerce `get_sales_report` (`date_min`, `date_max`).
+
+Meta attributes only ad-driven purchases, so it should be **below** total orders. Meta
+above total orders means dedup is failing (`event_id` mismatch between Pixel and CAPI).
+A sharp rise in Meta purchases right after launch with flat orders is the same bug.
+For a full cross-platform table, use `/conversion-debug`.
+
+## Other Platforms' Server-Side APIs
+
+The architecture, hashing (SHA-256, normalised) and `event_id` dedup above carry over.
+Check the platform's pixel before building:
+
+| Platform | Server-side API | Dedup key | Read the pixel with |
+|----------|-----------------|-----------|---------------------|
+| TikTok | Events API | `event_id` (same as Pixel) | `TikTok_Ads` `tool_get_pixels` (`advertiser_id`) |
+| Snapchat | Conversions API | `client_dedup_id` / `event_id` | `Snapchat_Ads` `tool_list_pixels` (`ad_account_id`) |
+| Reddit | Conversions API | `conversion_id` | `Reddit_Ads` `tool_get_conversion_events` (`ad_account_id`) |
+| LinkedIn | Conversions API | `eventId` (matches Insight Tag) | `LinkedIn_Ads` `tool_get_conversions` (`ad_account_id`) |
+| X | Conversion API | `conversion_id` | `X_Ads` `tool_get_web_event_tags` (`account_id`) |
+| Google Ads | Enhanced conversions | `transaction_id` / order ID | see `/conversion-debug` |
+
+Only Meta is covered in depth here; for the others, confirm field names in the platform
+docs with `WebFetch` before writing code.
+
 ## Aggregated Event Measurement (AEM)
 
 Meta's protocol for measuring events from iOS 14.5+ users who opted out of tracking via ATT.
+
+> **Check the account before applying this section.** Meta's developer docs still describe
+> an 8-event-per-domain limit with prioritisation and domain verification
+> (developers.facebook.com/documentation/meta-pixel/implementation/marketing-api).
+> Widely reported changes not yet reflected in those docs say Meta removed the AEM tab and
+> manual web-event ranking from Events Manager in many accounts and made domain
+> verification optional for event configuration. Ask the user what their Events Manager
+> shows: no AEM / event-priority screen means skip the ranking steps below. Verifying the
+> domain is still worth doing either way (link-preview control, multi-pixel domains).
 
 ### Key Facts
 

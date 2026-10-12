@@ -1,7 +1,7 @@
 ---
 name: brand-kit
 description: Build a portable brand-kit.json for the user's product — colors, typography, voice — that other skills (video, ad creative, landing page) can consume. Multiple discovery paths so it works whether the user has access to their site's source code or only a public URL or just a logo image.
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: [hyperframes, ffmpeg]
 user-invocable: true
@@ -14,10 +14,20 @@ allowed-tools:
   - Write
   - Edit
   # Cogny MCP context tree — may already contain a documented brand kit / voice / palette
+  - mcp__cogny__refresh_mcp_discovery
   - mcp__cogny__get_context_tree_overview
   - mcp__cogny__browse_context_tree
   - mcp__cogny__read_context_node
   - mcp__cogny__search_context
+  - mcp__cogny__list_integrations
+  # Cloud only: uploaded brand assets (logos, product shots) and palette reading
+  - mcp__cogny__mcp__cogny-image-gen__tool_list_brand_assets
+  - mcp__cogny__mcp__cogny-image-gen__tool_analyze_media
+  # Voice samples from the brand's own published posts (read-only)
+  - mcp__cogny__mcp__LinkedIn_Organic__tool_list_organizations
+  - mcp__cogny__mcp__LinkedIn_Organic__tool_get_organization_posts
+  - mcp__cogny__mcp__X_Organic__tool_get_me
+  - mcp__cogny__mcp__X_Organic__tool_get_user_posts
 ---
 
 # Brand Kit
@@ -33,6 +43,19 @@ The skill is built around the reality that **users don't always have access to t
 `/brand-kit ~/Desktop/logo.png` — extract palette from a logo or screenshot
 `/brand-kit ~/Desktop/homepage.png logo.png` — combine site screenshot + logo
 `/brand-kit` — interview the user
+
+## Works with
+
+Paths 1–5 work with zero accounts (Path 3 needs ffmpeg, ImageMagick or Node, or falls back to reading the image by eye; see below). Cogny adds two shortcuts:
+
+| Job | Primary | Also answers it | No account |
+|-----|---------|-----------------|------------|
+| Documented brand (voice, palette) | Context tree (`search_context`), Solo and Cloud | — | Paths 1-4 |
+| Logo / brand images already uploaded | `cogny-image-gen` `tool_list_brand_assets` (**Cloud only**) | — | User gives a file path |
+| Palette from an image URL | `cogny-image-gen` `tool_analyze_media` (**Cloud only**) | — | `extract-palette.sh` (Path 3) |
+| Voice samples beyond the homepage | LinkedIn_Organic `tool_get_organization_posts` | X_Organic `tool_get_user_posts` | Homepage + /about (Path 5) |
+
+On Solo, `cogny-image-gen` isn't available: skip Path 0b and use Path 3.
 
 ## Output
 
@@ -88,6 +111,8 @@ Minimum viable kit: `colors.background`, `colors.foreground`, `colors.primary`, 
 
 ## Path 0 — Cogny MCP context tree (cheapest, run first if connected)
 
+If Cogny isn't connected, skip this and note what connecting adds (a brand voice and palette the team already documented, so nothing needs scraping).
+
 **Use when**: the `cogny` MCP server is in `.mcp.json`. The user may have already documented their brand — voice, palette, tone — in their context tree, in which case scraping is redundant.
 
 ```
@@ -99,13 +124,21 @@ mcp__cogny__read_context_node node_id="…"
 
 If the tree returns brand / palette / voice nodes, hydrate the kit from those values. Cross-check against Path 1 or 3 only if something looks stale or contradictory.
 
-If the cogny MCP isn't connected, or the tree has nothing brand-related, fall through to Path 1.
+If the cogny MCP isn't connected, or the tree has nothing brand-related, fall through to Path 0b (Cloud) or Path 1.
+
+## Path 0b — Uploaded brand assets (Cloud only)
+
+If Cogny isn't connected, skip this and note what connecting adds (uploaded logos and product shots reused directly). **Use when**: `mcp__cogny__mcp__cogny-image-gen__tool_list_brand_assets` exists (Cloud workspaces). Solo workspaces don't have it; skip.
+
+1. `tool_list_brand_assets` with `asset_type: "logo"` (also `product`, `lifestyle`). Each row has `id`, `name`, `description` and `public_url`.
+2. Set `logo.path` to the logo's `public_url` and add `"brand_asset_id": "<id>"` so image-generating skills can pass it as `brand_asset_ids`.
+3. For colors, `mcp__cogny__mcp__cogny-image-gen__tool_analyze_media` with `media_url` = the logo's `public_url` and `prompt: "List the 3-6 distinct brand colors as hex codes, ordered by area, and say which is background"`. Treat the answer as a candidate palette and cross-check it with Path 2 or 3: vision models round hex values.
 
 ## Path 1 — Repo with Tailwind / CSS variables (best signal)
 
 **Use when**: the user has access to the site's source.
 
-Look for, in order:
+Look for, in order. Check which tools exist first: `command -v ffmpeg fd convert magick node` prints only the ones installed. `fd` is often missing; use the `find` lines then.
 
 ```bash
 # Tailwind config — custom color namespaces
@@ -114,6 +147,9 @@ fd -t f 'tailwind\.config\.(ts|js|mjs|cjs)$' <repo>
 fd -t f '(globals|index|app|theme|variables)\.css$' <repo>
 # Design tokens
 fd -t f '(design-tokens|tokens|theme)\.json$' <repo>
+
+# Same, without fd
+find <repo> -path '*/node_modules' -prune -o -type f \( -name 'tailwind.config.*' -o -name 'globals.css' -o -name 'index.css' -o -name 'app.css' -o -name 'theme.css' -o -name 'variables.css' -o -name 'tokens.json' -o -name 'design-tokens.json' -o -name 'theme.json' \) -print
 ```
 
 When you find a Tailwind config, look for a custom color namespace (commonly the brand name, e.g. `cogny: {...}`):
@@ -136,7 +172,7 @@ Map the values into the kit schema. If you find both `--primary` (HSL or hex) an
 Type detection in the same files:
 
 ```bash
-grep -E "(font-family|fontFamily|--font-)" <repo>/src/**/*.{css,ts,tsx,js} 2>/dev/null | head
+grep -rE --include='*.css' --include='*.ts' --include='*.tsx' --include='*.js' --exclude-dir=node_modules "(font-family|fontFamily|--font-)" <repo>/src 2>/dev/null | head
 ```
 
 ---
@@ -147,7 +183,13 @@ grep -E "(font-family|fontFamily|--font-)" <repo>/src/**/*.{css,ts,tsx,js} 2>/de
 
 Steps:
 
-1. **Fetch the homepage** with `WebFetch <url>` and extract any inline `<style>` blocks and the head's stylesheet links.
+1. **Fetch the homepage HTML with curl**, not WebFetch: WebFetch returns a summary and can't see `<head>`, `<style>` or `<link>` tags.
+   ```bash
+   curl -sL -A "Mozilla/5.0" "<url>" -o /tmp/home.html
+   grep -oiE '<link[^>]+rel="?(stylesheet|icon|apple-touch-icon|manifest)[^>]*>' /tmp/home.html
+   grep -oiE '<meta[^>]+(theme-color|og:image)[^>]*>' /tmp/home.html
+   sed -n '/<style/,/<\/style>/p' /tmp/home.html | head -c 50000
+   ```
 2. **Fetch the main stylesheet** (the largest CSS link in the head, typically). `curl -sL <css-url> | head -c 200000` is enough — look for CSS custom properties (`--primary`, `--background`, etc.) and `@font-face` rules.
 3. **Look for a manifest** at `/site.webmanifest`, `/manifest.json`, or `/manifest.webmanifest`. Manifests contain `theme_color`, `background_color`, and an icon list — gold for brand kits.
 4. **Look for a favicon and a high-res logo**:
@@ -156,7 +198,9 @@ Steps:
    curl -sL "<site>/apple-touch-icon.png" -o /tmp/touch.png
    # Or extract from <link rel="icon"> in the homepage HTML
    ```
-   The largest PNG icon on the site (Apple touch icon, manifest icon) is the brand mark.
+   The largest PNG icon on the site (Apple touch icon, manifest icon, `og:image`) is the brand mark. Check each with `curl -sI` (status 200 and an `image/*` content type) before using it.
+
+   **If only a favicon exists** (a 16–48px `.ico`/PNG, no touch icon, manifest icon or usable SVG logo): don't build a palette from it alone. Small icons are anti-aliased and often simplified, so a palette from them gives one reliable primary at best. Take the dominant color as a *candidate* primary, keep `logo.path` empty (or set `use_in_video: false`), and get the rest from the CSS (step 2), an inline SVG logo in the HTML (`grep -oiE '<svg[^>]*>.*?</svg>'` on the header, fill colors are exact), or by asking the user for a logo file or a homepage screenshot for Path 3.
 5. **Detect typography**: search the inline CSS for `font-family` declarations on `body`, `html`, or `h1`. If you see Google Fonts links in `<head>`, the family name is right there in the URL.
 
 If the site ships a static frontend (Next.js, etc.), the bundled CSS often contains the same custom properties as the dev source — so you might still recover the full brand palette without repo access.
@@ -165,11 +209,11 @@ If you only get partial info (e.g. you got `theme_color` from the manifest but n
 
 ---
 
-## Path 3 — Logo or screenshot palette extraction (the fallback that always works)
+## Path 3 — Logo or screenshot palette extraction
 
 **Use when**: the user uploads a logo image, a screenshot of their homepage, or a brand asset PNG/JPG.
 
-The user usually has *some* image — a logo on Desktop, a slack avatar, a website screenshot. Extract a palette directly with FFmpeg:
+The user usually has *some* image — a logo on Desktop, a slack avatar, a website screenshot. Check what's installed first (`command -v ffmpeg convert magick node`) and use the first available option. With FFmpeg:
 
 ```bash
 # Generate a small palette image (max 6 distinct colors) from any image.
@@ -227,7 +271,13 @@ node -e "
 " <input.png>
 ```
 
-Use whichever is available. FFmpeg ships with the video skills already, so that's the default.
+**With ImageMagick instead** (`convert`, or `magick` on v7):
+
+```bash
+convert <input.png> -resize 200x200 -colors 6 -format %c histogram:info:- | sort -rn | head -6
+```
+
+Use whichever is available. If none of ffmpeg, ImageMagick or Node is installed, open the image with the Read tool (it displays images), name the 3–5 dominant colors by eye as approximate hex values, and mark them "estimated, please confirm" in the kit; or go to Path 4.
 
 ---
 
@@ -252,6 +302,8 @@ Three colors and a font is enough to ship.
 Voice is the part of a brand kit that copy-paste tooling forgets. It changes which beats a video would write or which headlines an ad-copy skill would produce.
 
 **Source for voice**: the homepage hero + 1–2 deeper pages (about, pricing, blog).
+
+**Enhanced when connected:** the brand's own social posts show how it writes when it isn't selling. `mcp__cogny__mcp__LinkedIn_Organic__tool_list_organizations` → `tool_get_organization_posts` (`organization`, `count: 20`), or `mcp__cogny__mcp__X_Organic__tool_get_me` → `tool_get_user_posts` (`max_results: 20`). Use the top posts by engagement as voice samples. If site copy and social voice disagree, show both and ask which one the kit should follow.
 
 Steps:
 
@@ -285,7 +337,7 @@ If you can't infer voice from the page (e.g. very thin homepage), ask the user f
    - URL → Path 2 → fall through to 3 / 5 if needed
    - Repo path → Path 1 → fall through to 5
    - Image path → Path 3 + ask for site URL or repo for voice (Path 5)
-   - Nothing → Path 4 + ask if they have a logo to extract from
+   - Nothing → Path 0b if on Cloud, else Path 4 + ask if they have a logo to extract from
 
 2. **Build the kit incrementally**. Print partial state after each step so the user can intervene:
    ```

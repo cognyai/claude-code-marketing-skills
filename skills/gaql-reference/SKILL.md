@@ -1,7 +1,7 @@
 ---
 name: gaql-reference
 description: Google Ads Query Language (GAQL) Reference — complete syntax, resource types, fields, operators, date macros, and ready-to-use query patterns
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -12,10 +12,13 @@ allowed-tools:
   - Write
   - Bash
   # Google Ads tools (when connected via Cogny MCP)
-  - mcp__cogny__google_ads__tool_execute_gaql
-  - mcp__cogny__google_ads__tool_get_gaql_doc
-  - mcp__cogny__google_ads__tool_get_reporting_view_doc
-  - mcp__cogny__google_ads__tool_list_accessible_accounts
+  - mcp__cogny__list_integrations
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Ads__tool_execute_gaql
+  - mcp__cogny__mcp__Google_Ads__tool_get_gaql_doc
+  - mcp__cogny__mcp__Google_Ads__tool_get_reporting_view_doc
+  - mcp__cogny__mcp__Google_Ads__tool_list_accessible_accounts
+  - mcp__cogny__mcp__Bing_Ads__tool_get_report
 ---
 
 # Google Ads Query Language (GAQL) Reference
@@ -43,7 +46,16 @@ When the user asks a question, find the relevant section below and provide preci
 
 If the user provides a specific topic as an argument, focus on that area. Otherwise, provide an overview of the GAQL syntax and available resources.
 
-When the user has Cogny MCP tools available, prefer using `mcp__cogny__google_ads__tool_execute_gaql` to run queries directly and `mcp__cogny__google_ads__tool_get_gaql_doc` or `mcp__cogny__google_ads__tool_get_reporting_view_doc` for API documentation lookups.
+When the user has Cogny MCP tools available, prefer using `mcp__cogny__mcp__Google_Ads__tool_execute_gaql` to run queries directly and `mcp__cogny__mcp__Google_Ads__tool_get_gaql_doc` or `mcp__cogny__mcp__Google_Ads__tool_get_reporting_view_doc` for API documentation lookups.
+
+## Run it live
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+| Engine | How | Note |
+|--------|-----|------|
+| Google Ads | `mcp__cogny__mcp__Google_Ads__tool_execute_gaql` (after `tool_list_accessible_accounts`) | Free without an account: the reference still works, queries just aren't run |
+| Microsoft Ads | No GAQL. `mcp__cogny__mcp__Bing_Ads__tool_get_report` (`report_type`: campaign, ad_group, keyword, search_query, ad, geographic; optional `columns`) | Money in account-currency units, percents as percents |
 
 ---
 
@@ -54,13 +66,14 @@ When the user has Cogny MCP tools available, prefer using `mcp__cogny__google_ad
 ```
 query         = SELECT field_list FROM resource_name
                 [ WHERE condition_list ]
-                [ ORDER BY field_name [ ASC | DESC ] ]
+                [ ORDER BY ordering { , ordering } ]
                 [ LIMIT positive_integer ]
                 [ PARAMETERS param_list ]
 
 field_list    = field_name { , field_name }
 condition_list = condition { AND condition }
 condition     = field_name operator value
+ordering      = field_name [ ASC | DESC ]
 param_list    = param_name = param_value { , param_name = param_value }
 ```
 
@@ -71,7 +84,7 @@ param_list    = param_name = param_value { , param_name = param_value }
 | `SELECT` | Yes | Fields to return (resource fields, metrics, segments) |
 | `FROM` | Yes | Single resource type to query |
 | `WHERE` | No | Filter conditions joined by `AND` (no `OR` support) |
-| `ORDER BY` | No | Sort by one field, `ASC` or `DESC` |
+| `ORDER BY` | No | Sort by one or more comma-separated fields, each `ASC` or `DESC` |
 | `LIMIT` | No | Maximum number of rows to return |
 | `PARAMETERS` | No | Query-level parameters (e.g., `include_drafts = true`) |
 
@@ -531,14 +544,20 @@ SELECT
   metrics.conversions,
   metrics.conversions_value,
   metrics.all_conversions,
-  metrics.all_conversions_value,
-  metrics.cost_per_conversion
+  metrics.all_conversions_value
 FROM campaign
 WHERE campaign.status = 'ENABLED'
   AND segments.date DURING LAST_30_DAYS
-  AND metrics.conversions > 0
+  AND metrics.all_conversions > 0
 ORDER BY metrics.conversions DESC
 ```
+
+`segments.conversion_action_name` (and the other conversion-action segments) can't be
+combined with cost metrics: `metrics.cost_per_conversion` or `metrics.cost_micros` fails with
+`PROHIBITED_SEGMENT_WITH_METRIC_IN_SELECT_OR_WHERE_CLAUSE`. For cost per conversion by
+action, run a second query without the segment for `metrics.cost_micros`, then divide
+client-side. Filtering on `all_conversions` keeps secondary (non-primary) actions, which
+report 0 in `metrics.conversions`.
 
 ### Change History Audit
 
@@ -594,16 +613,20 @@ Enum fields must use string constant names:
 
 - **CampaignStatus:** `ENABLED`, `PAUSED`, `REMOVED`
 - **AdGroupStatus:** `ENABLED`, `PAUSED`, `REMOVED`
-- **AdvertisingChannelType:** `SEARCH`, `DISPLAY`, `SHOPPING`, `VIDEO`, `PERFORMANCE_MAX`, `MULTI_CHANNEL`, `LOCAL`, `SMART`, `HOTEL`, `DISCOVERY`
+- **AdvertisingChannelType:** `SEARCH`, `DISPLAY`, `SHOPPING`, `VIDEO`, `PERFORMANCE_MAX`, `MULTI_CHANNEL`, `LOCAL`, `SMART`, `HOTEL`, `DEMAND_GEN` (formerly `DISCOVERY`, which is no longer a valid enum and fails with `BAD_ENUM_CONSTANT`)
 - **KeywordMatchType:** `BROAD`, `PHRASE`, `EXACT`
-- **BiddingStrategyType:** `TARGET_CPA`, `TARGET_ROAS`, `MAXIMIZE_CONVERSIONS`, `MAXIMIZE_CONVERSION_VALUE`, `MANUAL_CPC`, `ENHANCED_CPC`, `TARGET_IMPRESSION_SHARE`
+- **BiddingStrategyType:** `TARGET_CPA`, `TARGET_ROAS`, `MAXIMIZE_CONVERSIONS`, `MAXIMIZE_CONVERSION_VALUE`, `MANUAL_CPC`, `TARGET_IMPRESSION_SHARE`; `ENHANCED_CPC` is deprecated (no longer available for Search and Display since March 2025) but can still appear on old campaigns
 - **Device:** `DESKTOP`, `MOBILE`, `TABLET`, `CONNECTED_TV`, `OTHER`
 - **QualityScoreBucket:** `BELOW_AVERAGE`, `AVERAGE`, `ABOVE_AVERAGE`
 
 ### Rate Limits
 
-- **Standard access:** 15,000 requests/day, 1,600 operations/minute.
-- **Basic access:** 10,000 requests/day.
+Daily operations per developer token ([access levels](https://developers.google.com/google-ads/api/docs/access-levels), rolling 24 hours):
+
+- **Explorer access:** 2,880 operations/day on production accounts.
+- **Basic access:** 15,000 operations/day.
+- **Standard access:** unlimited operations/day.
+- Short-term rate limits (`RESOURCE_EXHAUSTED`) still apply at every level; back off and retry.
 - Use `SearchStream` for large result sets (one operation regardless of size).
 
 ### Other Pitfalls
@@ -614,13 +637,14 @@ Enum fields must use string constant names:
 - **No aliases:** Cannot use `AS` in GAQL.
 - **No arithmetic:** Calculate `cost_micros / 1000000` client-side.
 - **Segment auto-grouping:** Adding a segment splits rows by that dimension.
-- **Removed resources:** Excluded by default. Filter explicitly to include them.
+- **Removed resources:** Returned by default (unlike the UI, the API doesn't hide them). Add `WHERE campaign.status != 'REMOVED'` (or the resource's own status) to match the UI.
 - **PARAMETERS clause:** `include_drafts = true` for drafts, `omit_unselected_resource_names = true` to reduce response size.
 
 ## Resources
 
 - **GAQL Grammar:** https://developers.google.com/google-ads/api/docs/query/grammar
-- **Interactive Query Builder:** https://developers.google.com/google-ads/api/fields/v17/overview_query_builder
-- **Resource Reference:** https://developers.google.com/google-ads/api/fields/v17/overview
+- **Interactive Query Builder:** https://developers.google.com/google-ads/api/fields/v25/overview_query_builder
+- **Resource Reference:** https://developers.google.com/google-ads/api/fields/v25/overview
+  (v25 is current as of 2026-10; swap in the latest version from https://developers.google.com/google-ads/api/docs/release-notes)
 - **Rate Limits:** https://developers.google.com/google-ads/api/docs/best-practices/rate-limits
 - **Full Cogny Docs:** https://cogny.com/docs/gaql-reference

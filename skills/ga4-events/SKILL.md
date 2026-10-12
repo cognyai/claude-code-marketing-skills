@@ -1,7 +1,7 @@
 ---
 name: ga4-events
 description: GA4 Event Implementation Reference — complete event taxonomy, parameter lists, implementation patterns (gtag.js, GTM, Measurement Protocol), and validation techniques
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,15 +13,24 @@ allowed-tools:
   - Read
   - Write
   # GA4 tools (when connected via Cogny MCP)
-  - mcp__cogny__google_analytics_4__tool_list_account_summaries
-  - mcp__cogny__google_analytics_4__tool_get_property
-  - mcp__cogny__google_analytics_4__tool_list_custom_dimensions
-  - mcp__cogny__google_analytics_4__tool_list_custom_metrics
-  - mcp__cogny__google_analytics_4__tool_list_conversion_events
-  - mcp__cogny__google_analytics_4__tool_list_data_streams
-  - mcp__cogny__google_analytics_4__tool_get_metadata
-  - mcp__cogny__google_analytics_4__tool_run_report
-  - mcp__cogny__google_analytics_4__tool_run_realtime_report
+  - mcp__cogny__list_integrations
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_get_property
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_custom_dimensions
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_custom_metrics
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_conversion_events
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_data_streams
+  - mcp__cogny__mcp__Google_Analytics_4__tool_get_metadata
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_report
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_realtime_report
+  # Other event sources (when connected via Cogny MCP)
+  - mcp__cogny__mcp__Segment__list_tracking_plans
+  - mcp__cogny__mcp__Segment__list_tracking_plan_rules
+  - mcp__cogny__mcp__Segment__get_events_volume
+  - mcp__cogny__mcp__PostHog__list_projects
+  - mcp__cogny__mcp__PostHog__list_event_definitions
+  - mcp__cogny__mcp__GrowthBook__list_experiments
 ---
 
 # GA4 Event Implementation Reference
@@ -50,6 +59,20 @@ You are a GA4 event implementation expert. Use this reference to help users impl
 When the user asks a question, find the relevant section below and provide actionable answers with ready-to-use code. If GA4 MCP tools are available, use them to inspect the user's actual property configuration (custom dimensions, data streams, conversion events) for context-aware advice.
 
 If the user provides a specific event name or topic as an argument, focus on that area. Otherwise, provide an overview of the event model.
+
+## Works with
+
+Works with zero accounts: the reference below is complete on its own. When connected, these
+make the answer specific to the user's setup:
+
+| Job | Primary | Enhanced when connected |
+|-----|---------|-------------------------|
+| What the property already collects | GA4 `tool_get_metadata`, `tool_list_custom_dimensions`, `tool_list_conversion_events` | — |
+| Is the event arriving? | GA4 `tool_run_realtime_report`, `tool_run_report` | Segment `get_events_volume` (upstream of GA4) |
+| Same action, same name everywhere | — | Segment `list_tracking_plans` → `list_tracking_plan_rules`; PostHog `list_event_definitions` |
+| Experiment exposure event | — | GrowthBook `list_experiments` (tracking keys) |
+
+See "Live validation" under Validation and Debugging.
 
 ---
 
@@ -227,8 +250,8 @@ gtag('event', 'add_payment_info', {
 ```javascript
 gtag('event', 'purchase', {
   transaction_id: 'T12345',  // REQUIRED — unique transaction ID
-  value: 259.98,             // REQUIRED — total value
-  currency: 'USD',           // REQUIRED — ISO 4217
+  value: 259.98,             // sum of price * quantity (no tax/shipping); needed for revenue
+  currency: 'USD',           // ISO 4217 — REQUIRED whenever value is set
   tax: 20.80,
   shipping: 9.99,
   coupon: 'SUMMER20',
@@ -242,7 +265,7 @@ gtag('event', 'purchase', {
 });
 ```
 
-**Critical:** `purchase` requires `transaction_id`, `value`, and `currency`. GA4 deduplicates by `transaction_id` within 72 hours.
+**Critical:** `purchase` requires `transaction_id` and `items`. `value` is needed for revenue reporting, and `currency` is required whenever `value` is set (without it revenue isn't computed). GA4 deduplicates by `transaction_id` within 72 hours.
 
 ### refund
 ```javascript
@@ -331,7 +354,8 @@ Use when no automatically collected, enhanced measurement, or recommended event 
 
 | Limit | Value |
 |-------|-------|
-| Unique event names per property | 500 |
+| Distinct event names, web streams | No limit |
+| Distinct event names, app streams | 500 per app user (auto-collected and enhanced measurement events excluded) |
 | Parameters per event | 25 |
 | Parameter name length | 40 characters |
 | Parameter value (string) | 100 characters |
@@ -439,7 +463,7 @@ payload = {
 response = requests.post(url, data=json.dumps(payload))
 ```
 
-**Limitations:** No response validation (use debug endpoint), `client_id` must match existing GA4 cookie, events not in Realtime (30-min delay), cannot trigger `first_visit`/`session_start`.
+**Limitations:** No response validation (use debug endpoint); events are joined to online activity via `client_id` / `app_instance_id`, so reuse the real `_ga` client ID; include `session_id` (within 24 hours of session start) to tie the event to a session; reserved names like `first_visit`/`session_start` can't be sent. MP is meant to supplement gtag/GTM/Firebase, not replace them. MP events do show in Realtime within seconds; add `debug_mode: 1` and `engagement_time_msec` to see them in DebugView.
 
 ### Validation Server
 
@@ -459,6 +483,26 @@ gtag('config', 'G-XXXXXXXXXX', { debug_mode: true });
 // Or per-event:
 gtag('event', 'purchase', { debug_mode: true, transaction_id: 'T12345', value: 99.99, currency: 'USD' });
 ```
+
+### Live validation (enhanced when connected)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+1. **GA4:** `tool_run_realtime_report` (`property_id`, `metrics: [eventCount]`,
+   `dimensions: [eventName]`) right after a test, then `tool_run_report` over 7 days with
+   `dimensions: [eventName]` to see steady-state volume.
+2. **Segment** (if the site sends through Segment): `get_events_volume` (`start_time`,
+   `end_time`, `group_by: [eventName]`, or `event_name: "Order Completed"`). Events in Segment
+   but missing in GA4 mean the GA4 destination mapping is wrong, not the site code.
+3. **Name drift:** Segment `list_tracking_plan_rules` (`tracking_plan_id` from
+   `list_tracking_plans`) and PostHog `list_event_definitions` (`project_id`, `search`).
+   Map each to its GA4 name in one table (Segment `Order Completed` → `purchase`,
+   `Product Added` → `add_to_cart`) and flag actions with no GA4 equivalent.
+4. **GrowthBook exposures:** `list_experiments` (`status: running`) gives each test's
+   tracking key. GA4 should receive `experiment_viewed` with `experiment_id` = that key and
+   `variation_id`; register both as event-scoped custom dimensions, or the GA4 split is invisible.
+
+Name the tool on every count; Segment counts calls, GA4 counts events after its own filters.
 
 ### BigQuery Validation Queries
 
@@ -534,7 +578,7 @@ GROUP BY 1, 2 HAVING max_len >= 100
 5. **Missing currency** — `value` without `currency` is ignored in monetization reports.
 6. **Stale dataLayer** — Always push `{ ecommerce: null }` before ecommerce events in GTM.
 7. **PII in parameters** — No emails, phone numbers, or names. Violates GA4 ToS.
-8. **Dynamic event names** — Burns through the 500-name limit. Use parameters instead.
+8. **Dynamic event names** — Fragments reporting (and burns the 500-name limit on app streams). Use parameters instead.
 
 ## Resources
 

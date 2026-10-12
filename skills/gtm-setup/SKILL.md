@@ -1,7 +1,7 @@
 ---
 name: gtm-setup
 description: GTM Event Tracking & Setup Reference — dataLayer fundamentals, trigger types, variable types, GA4 tag configuration, debug mode, and best practices
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -13,16 +13,24 @@ allowed-tools:
   - Read
   - Write
   # GTM tools (when connected via Cogny MCP)
-  - mcp__cogny__google_tag_manager__tool_list_accounts
-  - mcp__cogny__google_tag_manager__tool_list_containers
-  - mcp__cogny__google_tag_manager__tool_list_tags
-  - mcp__cogny__google_tag_manager__tool_list_triggers
-  - mcp__cogny__google_tag_manager__tool_list_variables
-  - mcp__cogny__google_tag_manager__tool_get_tag
-  - mcp__cogny__google_tag_manager__tool_get_trigger
-  - mcp__cogny__google_tag_manager__tool_get_variable
-  - mcp__cogny__google_tag_manager__tool_get_workspace_status
-  - mcp__cogny__google_tag_manager__tool_search_tags
+  - mcp__cogny__list_integrations
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_accounts
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_containers
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_tags
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_triggers
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_variables
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_tag
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_trigger
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_variable
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_get_workspace_status
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_search_tags
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_list_workspaces
+  - mcp__cogny__mcp__Google_Tag_Manager__tool_audit_container_privacy
+  # Verification when connected (read-only)
+  - mcp__cogny__mcp__Google_Analytics_4__tool_list_account_summaries
+  - mcp__cogny__mcp__Google_Analytics_4__tool_run_realtime_report
+  - mcp__cogny__mcp__Microsoft_Clarity__get_live_insights
 ---
 
 # GTM Event Tracking & Setup Reference
@@ -54,6 +62,17 @@ When the user asks a question, find the relevant section below and provide preci
 If the user provides a specific topic as an argument, focus on that area. Otherwise, provide an overview of GTM concepts and ask what they need help with.
 
 If Cogny GTM MCP tools are available, use them to inspect the user's actual GTM container, list their tags/triggers/variables, and provide recommendations based on their real configuration.
+
+## Works with
+
+Works with zero accounts: everything below is reference and copy-paste code.
+
+| Job | Without accounts | Enhanced when connected |
+|-----|------------------|-------------------------|
+| Read the real container | — | GTM `tool_list_tags`, `tool_list_triggers`, `tool_list_variables`, `tool_audit_container_privacy` |
+| Build tags / triggers / variables | user clicks it in GTM | GTM write tools (asks first; see "Building in the connected container") |
+| Verify the event arrives | GTM Preview + DebugView | GA4 `tool_run_realtime_report` |
+| Check a Custom HTML tag didn't break pages | Console | Microsoft Clarity `get_live_insights` (Script Error Count) |
 
 ---
 
@@ -93,13 +112,15 @@ dataLayer.push({
 
 ### Object Persistence and Merging
 
-Later pushes override earlier values. Nested objects use **shallow merge** (the entire nested object is replaced, not deep-merged):
+Later pushes override earlier values for the same key. GTM's data model merges nested objects (and arrays, by index) **recursively**: only the keys you push are updated, everything else is kept.
 
 ```javascript
 dataLayer.push({ 'user': { 'name': 'John', 'plan': 'free' } });
 dataLayer.push({ 'user': { 'plan': 'premium' } });
-// Result: user = { plan: 'premium' } — user.name is GONE
+// Result: user = { name: 'John', plan: 'premium' } — user.name survives
 ```
+
+That recursive merge is why stale e-commerce data leaks from one event into the next, and why you push `{ ecommerce: null }` first.
 
 ### Clearing Stale Data (Critical for E-Commerce)
 
@@ -355,9 +376,13 @@ dataLayer.push({
 
 ### Page View Triggers
 
+Listed in firing order:
+
 | Sub-Type | Fires When | Use Case |
 |----------|------------|----------|
-| **Page View** | `gtm.js` (immediately) | GA4 config tag, consent checks |
+| **Consent Initialization** | Before every other trigger | CMP tag, consent mode defaults |
+| **Initialization** | Before everything except Consent Initialization | Google tag, tags that set up shared config |
+| **Page View** | `gtm.js` (immediately) | Page-load tags that don't need the DOM |
 | **DOM Ready** | `gtm.dom` (DOM parsed) | Tags that read DOM elements |
 | **Window Loaded** | `gtm.load` (all resources loaded) | Tags depending on images/scripts |
 
@@ -488,16 +513,15 @@ Like Lookup Table but uses regex patterns. Example: `^/product/.*` maps to `Prod
 
 ## Tag Types
 
-### GA4 Configuration Tag
+### Google Tag
 
-Sets up the GA4 measurement stream. Fire on All Pages.
+Sets up the GA4 measurement stream (it replaced the old "GA4 Configuration" tag; existing ones were migrated automatically). Fire on Initialization - All Pages.
 
 | Setting | Description |
 |---------|-------------|
-| Measurement ID | `G-XXXXXXXXXX` (use a Constant variable) |
-| Send page_view | Auto-send page_view on load |
-| Fields to Set | `debug_mode`, `send_page_view`, `user_id` |
-| User Properties | User-scoped dimensions |
+| Tag ID | `G-XXXXXXXXXX` (use a Constant variable) |
+| Configuration settings | Key/value pairs such as `send_page_view`, `debug_mode`, `user_id` (or a "Google Tag: Configuration Settings" variable) |
+| Shared event settings | Parameters sent with every event (or a "Google Tag: Event Settings" variable) |
 
 ### GA4 Event Tag
 
@@ -505,7 +529,7 @@ Sends a custom event to GA4.
 
 | Setting | Description |
 |---------|-------------|
-| Configuration Tag | Your GA4 Config tag |
+| Measurement ID | `G-XXXXXXXXXX` (same as the Google tag) |
 | Event Name | GA4 event name (e.g., `generate_lead`) |
 | Event Parameters | Key-value pairs (e.g., `transaction_id`, `value`) |
 
@@ -585,11 +609,40 @@ dataLayer.filter(function(item) { return item.event === 'purchase'; });
 
 ### GA4 DebugView
 
-Add `debug_mode: true` to your GA4 Config tag fields, then view events at GA4 Admin > DebugView.
+Add `debug_mode: true` to your Google tag's configuration settings, then view events at GA4 Admin > DebugView.
 
 ### Network Tab
 
 Filter by `collect` in DevTools Network tab to see GA4 hits. Verify payload parameters.
+
+### Verify from the data (enhanced when connected)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+- **GA4:** right after publishing, `tool_run_realtime_report` (`property_id`,
+  `metrics: [eventCount]`, `dimensions: [eventName]`). The new event should appear within
+  minutes of a test conversion. Missing: back to Preview.
+- **Clarity:** a day after publishing a Custom HTML tag, `get_live_insights`
+  (`num_of_days: 1`, `metrics: [Script Error Count]`, `dimensions: [URL]`). A jump on the
+  pages the tag fires on means the tag throws.
+
+### Building in the connected container (writes, asks first)
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+Every call below changes the container. Show the exact name, type and parameters, and
+wait for a yes before each batch. Never publish without a separate yes.
+
+1. `tool_create_workspace` (`account_id`, `container_id`, `name`): work in a feature
+   workspace, not Default.
+2. `tool_create_variable` (`…`, `workspace_id`, `name`, `variable_type`, `parameters`).
+3. `tool_create_trigger` (`…`, `workspace_id`, `name`, `trigger_type`, `parameters`).
+4. `tool_create_tag` (`…`, `workspace_id`, `name`, `tag_type`, `parameters`,
+   `firing_trigger_ids`).
+5. Ask the user to test in GTM Preview, then `tool_create_version` (`…`, `workspace_id`,
+   `name`, `notes`).
+6. `tool_publish_version` (`account_id`, `container_id`, `version_id`) only on an explicit
+   "publish".
 
 ## Best Practices
 
@@ -607,7 +660,7 @@ Filter by `collect` in DevTools Network tab to see GA4 hits. Verify payload para
 
 ```
 GA4/
-  GA4 - Config - All Pages
+  Google Tag - G-XXXX - All Pages
   GA4 - Event - Purchase
   GA4 - Event - Add to Cart
 Meta/
@@ -636,27 +689,26 @@ Use Tag Sequencing to ensure setup tags fire before dependent tags. Use tag firi
 
 ### Consent Mode v2
 
+Consent is set with the `gtag('consent', ...)` command, not a dataLayer event. A `dataLayer.push({event: 'consent_default', consent: {...}})` does nothing for consent mode. Put the default above the GTM snippet (or use a CMP template / consent-mode template on the **Consent Initialization** trigger, which calls `setDefaultConsentState` / `updateConsentState`).
+
 ```javascript
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+
 // Default (before user choice)
-dataLayer.push({
-  'event': 'consent_default',
-  'consent': {
-    'ad_storage': 'denied',
-    'analytics_storage': 'denied',
-    'ad_user_data': 'denied',
-    'ad_personalization': 'denied'
-  }
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'analytics_storage': 'denied',
+  'ad_user_data': 'denied',
+  'ad_personalization': 'denied'
 });
 
-// After user grants consent
-dataLayer.push({
-  'event': 'consent_update',
-  'consent': {
-    'ad_storage': 'granted',
-    'analytics_storage': 'granted',
-    'ad_user_data': 'granted',
-    'ad_personalization': 'granted'
-  }
+// After user grants consent (from the banner's callback)
+gtag('consent', 'update', {
+  'ad_storage': 'granted',
+  'analytics_storage': 'granted',
+  'ad_user_data': 'granted',
+  'ad_personalization': 'granted'
 });
 ```
 
@@ -711,7 +763,7 @@ export function GTMPageView() {
 
 ### 8. Cross-Domain Tracking Issues
 
-Users counted as new sessions across domains. Fix: configure cross-domain linker in GA4 Config tag or GA4 Admin > Data Streams > Configure your domains.
+Users counted as new sessions across domains. Fix: configure cross-domain linker in the Google tag settings or GA4 Admin > Data Streams > Configure your domains.
 
 ### 9. Preview Traffic Inflating Analytics
 

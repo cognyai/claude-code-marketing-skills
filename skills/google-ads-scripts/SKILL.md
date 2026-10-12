@@ -1,7 +1,7 @@
 ---
 name: google-ads-scripts
 description: Google Ads Scripts Reference — JavaScript automation, AdsApp object model, selectors, GAQL queries, 10+ working script patterns, MCC parallel processing, Sheets integration
-version: "1.0.0"
+version: "1.1.1"
 author: Cogny AI
 platforms: []
 user-invocable: true
@@ -12,10 +12,14 @@ allowed-tools:
   - Write
   - Bash
   # Google Ads tools (when connected via Cogny MCP)
-  - mcp__cogny__google_ads__tool_execute_gaql
-  - mcp__cogny__google_ads__tool_get_gaql_doc
-  - mcp__cogny__google_ads__tool_get_reporting_view_doc
-  - mcp__cogny__google_ads__tool_list_accessible_accounts
+  - mcp__cogny__list_integrations
+  - mcp__cogny__refresh_mcp_discovery
+  - mcp__cogny__mcp__Google_Ads__tool_execute_gaql
+  - mcp__cogny__mcp__Google_Ads__tool_get_gaql_doc
+  - mcp__cogny__mcp__Google_Ads__tool_get_reporting_view_doc
+  - mcp__cogny__mcp__Google_Ads__tool_list_accessible_accounts
+  - mcp__cogny__get_script_sdk_reference
+  - mcp__cogny__mcp__Bing_Ads__tool_get_report
 ---
 
 # Google Ads Scripts Reference
@@ -53,6 +57,20 @@ Key principles:
 - Batch Google Sheets writes for performance
 - Remind users about the 30-minute execution limit (60 min for MCC)
 
+## Run it live
+
+If Cogny isn't connected, skip this and note what connecting adds.
+
+- **Test the query first.** With Google Ads connected, run a script's GAQL through
+  `mcp__cogny__mcp__Google_Ads__tool_execute_gaql` before pasting it into the Scripts UI.
+- **Schedule it in Cogny instead (Cloud, when the workspace flag is on).** Read
+  `mcp__cogny__get_script_sdk_reference`, then `mcp__cogny__create_script` /
+  `mcp__cogny__create_automation` (writes: not pre-approved, ask first). Anything that writes
+  to the account asks first.
+- **Microsoft Ads** has its own Scripts product with a similar `AdsApp` model but no GAQL;
+  check its API before porting. For reads, `mcp__cogny__mcp__Bing_Ads__tool_get_report` covers
+  the same campaign, keyword and search-query data.
+
 ---
 
 ## Overview
@@ -76,7 +94,9 @@ Google Ads Scripts let you programmatically control Google Ads using JavaScript.
 | Execution limit | 30 minutes | 60 minutes |
 | Parallel execution | No | Yes, `executeInParallel()` |
 
-**Language:** JavaScript ES5 with some ES6. `let`, `const`, arrow functions, template literals work. `async`/`await`, `import`/`export`, `class` do not.
+**Language:** Scripts run on the V8 runtime (ECMAScript 6+), so modern JavaScript works: `let`/`const`, arrow functions, template literals, destructuring, `class`. No `import`/`export` or npm modules, and Ads services (`AdsApp`, `UrlFetchApp`, `SpreadsheetApp`) are synchronous, so `async`/`await` buys nothing. The examples below use ES5-style `var`, which also runs fine.
+
+**Dates:** `Utilities.formatDate()` doesn't use the account's time zone by default. Always pass `AdsApp.currentAccount().getTimeZone()`, or "today" and "yesterday" can be off by a day versus the account's reporting.
 
 ## AdsApp Object Model
 
@@ -196,6 +216,12 @@ Google Ads Query Language provides SQL-like access to the full Google Ads API fr
 
 Returns an iterator of result rows as JavaScript objects.
 
+**int64 metrics come back as strings.** Rows follow the protobuf JSON mapping, which encodes
+64-bit integers (`metrics.impressions`, `metrics.clicks`, `metrics.cost_micros`, IDs) as
+decimal strings. `row.metrics.clicks + 1` concatenates and `a.clicks > b.clicks` compares
+text. Wrap every metric in `Number()` before arithmetic or comparison (harmless on doubles
+like `conversions`, so the examples below wrap them all).
+
 ```javascript
 function main() {
   var query = "SELECT " +
@@ -215,8 +241,8 @@ function main() {
   while (results.hasNext()) {
     var row = results.next();
     Logger.log(row.campaign.name +
-      ' | Cost: $' + (row.metrics.costMicros / 1000000).toFixed(2) +
-      ' | Conversions: ' + row.metrics.conversions);
+      ' | Cost: $' + (Number(row.metrics.costMicros) / 1000000).toFixed(2) +
+      ' | Conversions: ' + Number(row.metrics.conversions));
   }
 }
 ```
@@ -332,8 +358,8 @@ function main() {
   var expectedSpend = (CONFIG.MONTHLY_BUDGET / daysInMonth) * dayOfMonth;
 
   var firstOfMonth = Utilities.formatDate(
-    new Date(today.getFullYear(), today.getMonth(), 1), 'UTC', 'yyyyMMdd');
-  var todayStr = Utilities.formatDate(today, 'UTC', 'yyyyMMdd');
+    new Date(today.getFullYear(), today.getMonth(), 1), AdsApp.currentAccount().getTimeZone(), 'yyyyMMdd');
+  var todayStr = Utilities.formatDate(today, AdsApp.currentAccount().getTimeZone(), 'yyyyMMdd');
 
   var campaigns = AdsApp.campaigns()
     .withCondition('Status = ENABLED')
@@ -417,12 +443,12 @@ function main() {
   while (results.hasNext()) {
     var row = results.next();
     var term = row.searchTermView.searchTerm;
-    var cost = row.metrics.costMicros / 1000000;
+    var cost = Number(row.metrics.costMicros) / 1000000;
 
     negatives.push({ term: term, campaign: row.campaign.name, cost: cost });
 
     Logger.log('NEGATIVE: "' + term + '" | Cost: $' + cost.toFixed(2) +
-      ' | Clicks: ' + row.metrics.clicks + ' | Campaign: ' + row.campaign.name);
+      ' | Clicks: ' + Number(row.metrics.clicks) + ' | Campaign: ' + row.campaign.name);
 
     if (!CONFIG.DRY_RUN) {
       var campaigns = AdsApp.campaigns()
@@ -542,9 +568,9 @@ function main() {
     if (!hourlyData[name][hour]) {
       hourlyData[name][hour] = { clicks: 0, conversions: 0, cost: 0 };
     }
-    hourlyData[name][hour].clicks += row.metrics.clicks;
-    hourlyData[name][hour].conversions += row.metrics.conversions;
-    hourlyData[name][hour].cost += row.metrics.costMicros / 1000000;
+    hourlyData[name][hour].clicks += Number(row.metrics.clicks);
+    hourlyData[name][hour].conversions += Number(row.metrics.conversions);
+    hourlyData[name][hour].cost += Number(row.metrics.costMicros) / 1000000;
   }
 
   for (var campaignName in hourlyData) {
@@ -598,7 +624,7 @@ function main() {
     ]);
   }
 
-  var today = Utilities.formatDate(new Date(), 'UTC', 'yyyy-MM-dd');
+  var today = Utilities.formatDate(new Date(), AdsApp.currentAccount().getTimeZone(), 'yyyy-MM-dd');
 
   var query = "SELECT " +
     "campaign.name, ad_group.name, " +
@@ -626,8 +652,8 @@ function main() {
       row.adGroupCriterion.keyword.text, row.adGroupCriterion.keyword.matchType,
       qi.qualityScore || '', qi.searchPredictedCtr || '',
       qi.creativeQualityScore || '', qi.postClickQualityScore || '',
-      row.metrics.impressions, row.metrics.clicks,
-      (row.metrics.costMicros / 1000000).toFixed(2), row.metrics.conversions
+      Number(row.metrics.impressions), Number(row.metrics.clicks),
+      (Number(row.metrics.costMicros) / 1000000).toFixed(2), Number(row.metrics.conversions)
     ]);
   }
 
@@ -672,10 +698,10 @@ function main() {
     adGroups[agKey].push({
       adId: row.adGroupAd.ad.id,
       strength: row.adGroupAd.adStrength,
-      impressions: row.metrics.impressions,
-      clicks: row.metrics.clicks,
+      impressions: Number(row.metrics.impressions),
+      clicks: Number(row.metrics.clicks),
       ctr: row.metrics.ctr,
-      conversions: row.metrics.conversions
+      conversions: Number(row.metrics.conversions)
     });
   }
 
@@ -781,8 +807,8 @@ function main() {
   var yesterday = new Date(today.getTime() - 86400000);
   var lookbackStart = new Date(today.getTime() - (CONFIG.LOOKBACK_DAYS + 1) * 86400000);
 
-  var yesterdayStr = Utilities.formatDate(yesterday, 'UTC', 'yyyyMMdd');
-  var lookbackStr = Utilities.formatDate(lookbackStart, 'UTC', 'yyyyMMdd');
+  var yesterdayStr = Utilities.formatDate(yesterday, AdsApp.currentAccount().getTimeZone(), 'yyyyMMdd');
+  var lookbackStr = Utilities.formatDate(lookbackStart, AdsApp.currentAccount().getTimeZone(), 'yyyyMMdd');
 
   var query = "SELECT campaign.name, " +
     "metrics.impressions, metrics.clicks, metrics.cost_micros, " +
@@ -802,15 +828,15 @@ function main() {
     var date = row.segments.date;
     if (!campaignDays[name]) campaignDays[name] = {};
     campaignDays[name][date] = {
-      impressions: row.metrics.impressions,
-      clicks: row.metrics.clicks,
-      cost_micros: row.metrics.costMicros,
-      conversions: row.metrics.conversions
+      impressions: Number(row.metrics.impressions),
+      clicks: Number(row.metrics.clicks),
+      cost_micros: Number(row.metrics.costMicros),
+      conversions: Number(row.metrics.conversions)
     };
   }
 
   var alerts = [];
-  var yesterdayDate = Utilities.formatDate(yesterday, 'UTC', 'yyyy-MM-dd');
+  var yesterdayDate = Utilities.formatDate(yesterday, AdsApp.currentAccount().getTimeZone(), 'yyyy-MM-dd');
 
   for (var campaignName in campaignDays) {
     var days = campaignDays[campaignName];
@@ -877,15 +903,15 @@ function main() {
 
   while (results.hasNext()) {
     var row = results.next();
-    var cost = row.metrics.costMicros / 1000000;
-    var cvr = row.metrics.clicks > 0 ? row.metrics.conversions / row.metrics.clicks : 0;
-    var roas = cost > 0 ? row.metrics.conversionsValue / cost : 0;
+    var cost = Number(row.metrics.costMicros) / 1000000;
+    var cvr = Number(row.metrics.clicks) > 0 ? Number(row.metrics.conversions) / Number(row.metrics.clicks) : 0;
+    var roas = cost > 0 ? Number(row.metrics.conversionsValue) / cost : 0;
 
     pages.push([
       row.landingPageView.unexpandedFinalUrl,
-      row.metrics.clicks, row.metrics.impressions,
-      cost.toFixed(2), row.metrics.conversions,
-      row.metrics.conversionsValue.toFixed(2),
+      Number(row.metrics.clicks), Number(row.metrics.impressions),
+      cost.toFixed(2), Number(row.metrics.conversions),
+      Number(row.metrics.conversionsValue).toFixed(2),
       (cvr * 100).toFixed(2) + '%', roas.toFixed(2)
     ]);
   }
@@ -1073,8 +1099,8 @@ function aggregateResults(results) {
 | Limitation | Details |
 |-----------|---------|
 | Execution time | 30 min (single), 60 min (MCC) |
-| No async/await | Synchronous execution only |
-| Limited ES6 | No `import`/`export`, no `class` |
+| Synchronous APIs | Ads/Sheets/UrlFetch calls block; `async`/`await` gives no concurrency |
+| No modules | V8 (ES6+) syntax, but no `import`/`export` |
 | No Display/Video APIs | Limited support via scripts |
 | No Performance Max | Read-only (limited reporting) |
 | URL fetch | 50 MB response limit, 60s timeout |
