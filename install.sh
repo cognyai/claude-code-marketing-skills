@@ -57,16 +57,21 @@ if [ -n "$CODEX_HOME" ] || [ -d "$HOME/.codex" ] || command -v codex &>/dev/null
   INSTALLED="${INSTALLED:+$INSTALLED }codex"
 fi
 
+if [ -n "$GEMINI_HOME" ] || [ -d "$HOME/.gemini" ] || command -v gemini &>/dev/null; then
+  INSTALLED="${INSTALLED:+$INSTALLED }gemini"
+fi
+
 if [ -d ".cursor" ] || [ -d "$HOME/.cursor" ]; then
   INSTALLED="${INSTALLED:+$INSTALLED }cursor"
 fi
 
 if [ -z "$INSTALLED" ]; then
   echo "No supported AI tool detected."
-  echo "Supported: Claude Code, Codex, Cursor"
+  echo "Supported: Claude Code, Codex, Gemini CLI, Cursor"
   echo ""
   echo "Manual install for Claude Code: cp -r skills/* .claude/skills/"
   echo "Manual install for Codex: cp -r skills/* \${CODEX_HOME:-\$HOME/.codex}/skills/"
+  echo "Manual install for Gemini CLI: cp -r skills/* \${GEMINI_HOME:-\$HOME/.gemini}/skills/"
   [ -n "$CLEANUP" ] && rm -rf "$CLEANUP"
   exit 1
 fi
@@ -88,6 +93,17 @@ fi
 if echo "$INSTALLED" | grep -q "codex"; then
   CODEX_SKILLS_HOME="${CODEX_HOME:-$HOME/.codex}"
   TARGET="$CODEX_SKILLS_HOME/skills"
+  COUNT=$(copy_skill_package "$TARGET")
+
+  echo "Installed $COUNT skills to $TARGET/"
+  echo ""
+  echo "Try it: /seo-audit cogny.com"
+fi
+
+# Install for Gemini CLI
+if echo "$INSTALLED" | grep -q "gemini"; then
+  GEMINI_SKILLS_HOME="${GEMINI_HOME:-$HOME/.gemini}"
+  TARGET="$GEMINI_SKILLS_HOME/skills"
   COUNT=$(copy_skill_package "$TARGET")
 
   echo "Installed $COUNT skills to $TARGET/"
